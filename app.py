@@ -4,7 +4,7 @@ import google.generativeai as genai
 
 # ---------------- CONFIG ----------------
 genai.configure(api_key=os.getenv("AIzaSyBv2dnTTYh3CPHmnRCDO8NQeOcAyRIectw"))
-model = genai.GenerativeModel("gemini-2.5-flash")
+model = genai.GenerativeModel("gemini-2.5 Flash")
 
 st.set_page_config(page_title="CoachBot AI", page_icon="🏋️", layout="centered")
 
