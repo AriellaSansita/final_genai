@@ -15,9 +15,6 @@ st.set_page_config(page_title="CoachBot AI", page_icon="🏋️", layout="center
 
 # ---------------- UI ----------------
 st.title("🏋️ CoachBot AI")
-st.caption("AI-powered personalized fitness & sports coaching")
-
-st.divider()
 
 sport = st.text_input("Sport", placeholder="e.g., Football, Cricket, Basketball")
 position = st.text_input("Player Position", placeholder="e.g., Striker, Bowler, Guard")
@@ -81,6 +78,3 @@ if st.button("Generate Plan"):
                 st.write(response.text)
             except Exception as e:
                 st.error(f"An error occurred while generating the plan: {str(e)}. Please check your API key, model availability, and internet connection.")
-
-st.divider()
-st.caption("⚠️ AI-generated advice is for educational purposes only.")
