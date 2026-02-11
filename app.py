@@ -3,10 +3,16 @@ import streamlit as st
 import google.generativeai as genai
 
 # ---------------- CONFIG ----------------
-# Fixed: Use environment variable for API key (set GOOGLE_API_KEY in your environment)
-genai.configure(api_key=os.getenv("AIzaSyBv2dnTTYh3CPHmnRCDO8NQeOcAyRIectw"))
-# Fixed: Correct model name (assuming "gemini-1.5-flash" based on available models; adjust if needed)
-model = genai.GenerativeModel("gemini-2.5-flash")
+# Ensure you set the GOOGLE_API_KEY environment variable with your actual API key
+# Example: export GOOGLE_API_KEY=your_actual_api_key_here
+api_key = os.getenv("GOOGLE_API_KEY")
+if not api_key:
+    st.error("Please set the GOOGLE_API_KEY environment variable with your Google Generative AI API key.")
+    st.stop()
+
+genai.configure(api_key=api_key)
+# Using a known working model; adjust if needed (e.g., "gemini-1.0-pro" if available)
+model = genai.GenerativeModel("gemini-1.5-flash")
 
 st.set_page_config(page_title="CoachBot AI", page_icon="🏋️", layout="centered")
 
@@ -66,16 +72,18 @@ if st.button("Generate Plan"):
         st.warning("Please enter at least the Sport and Goal.")
     else:
         with st.spinner("CoachBot AI is thinking..."):
-            response = model.generate_content(
-                build_prompt(feature),
-                generation_config={
-                    "temperature": 0.5,
-                    "max_output_tokens": 600
-                }
-            )
-
-        st.subheader("📋 AI Generated Output")
-        st.write(response.text)
+            try:
+                response = model.generate_content(
+                    build_prompt(feature),
+                    generation_config={
+                        "temperature": 0.5,
+                        "max_output_tokens": 600
+                    }
+                )
+                st.subheader("📋 AI Generated Output")
+                st.write(response.text)
+            except Exception as e:
+                st.error(f"An error occurred while generating the plan: {str(e)}. Please check your API key, model availability, and internet connection.")
 
 st.divider()
 st.caption("⚠️ AI-generated advice is for educational purposes only.")
