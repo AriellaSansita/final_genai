@@ -1,24 +1,53 @@
+import streamlit as st
 import google.generativeai as genai
 import matplotlib.pyplot as plt
 import pandas as pd
 import json
 
 # ---------------- CONFIG ----------------
-API_KEY = "YOUR_ACTUAL_GOOGLE_API_KEY"  # Replace with your real key
-genai.configure(api_key=API_KEY)
+st.set_page_config(page_title="CoachBot AI", page_icon="🏋️", layout="centered")
+
+# Get API key from Streamlit Secrets
+try:
+    api_key = st.secrets["GOOGLE_API_KEY"]
+except Exception:
+    st.error("GOOGLE_API_KEY not found. Add it in Streamlit → App Settings → Secrets.")
+    st.stop()
+
+genai.configure(api_key=api_key)
 model = genai.GenerativeModel("gemini-1.5-flash")
 
-# ---------------- USER INPUT ----------------
-sport = "Basketball"
-position = "Guard"
-goal = "Build stamina"
-injury = "None"
-diet = "No Preference"
+# ---------------- UI ----------------
+st.title("🏋️ CoachBot AI")
+st.caption("AI-powered personalized fitness & sports coaching (data + graphs)")
 
-feature = "Full Workout Plan"  # Options: Full Workout Plan, Recovery & Injury-Safe Training, Weekly Nutrition Plan, Warm-up & Cooldown Routine, Tactical Improvement Tips
+st.divider()
+
+sport = st.text_input("Sport", placeholder="e.g., Football, Cricket, Basketball")
+position = st.text_input("Player Position", placeholder="e.g., Striker, Bowler, Guard")
+goal = st.text_input("Primary Goal", placeholder="e.g., Build stamina, Strength, Recovery")
+injury = st.text_input("Injury / Risk Area", placeholder="e.g., Knee strain, None")
+diet = st.selectbox("Diet Preference", ["No Preference", "Vegetarian", "Non-Vegetarian", "Vegan"])
+
+st.divider()
+
+feature = st.selectbox(
+    "What would you like to generate?",
+    [
+        "Full Workout Plan",
+        "Recovery & Injury-Safe Training",
+        "Weekly Nutrition Plan",
+        "Warm-up & Cooldown Routine",
+        "Tactical Improvement Tips"
+    ]
+)
 
 # ---------------- PROMPT LOGIC ----------------
 def build_prompt(feature):
+    """
+    Ask the AI to output structured JSON data instead of paragraphs.
+    Each entry includes Day, Workout/Task, Intensity (1-100).
+    """
     base = f"""
 You are a professional sports coach.
 
@@ -37,6 +66,7 @@ Format each entry as:
 
 Do NOT include any text outside JSON.
 """
+
     prompts = {
         "Full Workout Plan": base,
         "Recovery & Injury-Safe Training": base.replace("Workout", "Recovery Routine"),
@@ -44,37 +74,45 @@ Do NOT include any text outside JSON.
         "Warm-up & Cooldown Routine": base.replace("Workout", "Warm-up & Cooldown"),
         "Tactical Improvement Tips": base.replace("Workout", "Tactical Tips")
     }
+
     return prompts[feature]
 
 # ---------------- GENERATION ----------------
-try:
-    print("Generating plan...")
-    response = model.generate_content(
-        build_prompt(feature),
-        generation_config={"temperature":0.3, "max_output_tokens":800}
-    )
+if st.button("Generate Plan"):
+    if not sport or not goal:
+        st.warning("Please enter at least the Sport and Goal.")
+    else:
+        with st.spinner("CoachBot AI is generating..."):
+            try:
+                response = model.generate_content(
+                    build_prompt(feature),
+                    generation_config={"temperature":0.3, "max_output_tokens":800}
+                )
 
-    # Parse JSON
-    plan_data = json.loads(response.text)
-    df = pd.DataFrame(plan_data)
+                # Parse JSON from AI
+                try:
+                    plan_data = json.loads(response.text)
+                    df = pd.DataFrame(plan_data)
+                except Exception:
+                    st.error(f"Failed to parse AI output as JSON.\nRaw output:\n{response.text}")
+                    st.stop()
 
-    # Show table
-    print("\n📋 Weekly Plan Table:")
-    print(df.to_string(index=False))
+                # Show as table
+                st.subheader("📋 Weekly Plan Table")
+                st.dataframe(df)
 
-    # Show / save graph if Intensity exists
-    if "Intensity" in df.columns:
-        plt.figure(figsize=(10,5))
-        plt.plot(df["Day"], df["Intensity"], marker="o", linestyle="-", color="orange")
-        plt.xlabel("Day")
-        plt.ylabel("Intensity")
-        plt.title("📈 Weekly Training Load")
-        plt.ylim(0, 100)
-        plt.grid(True)
-        plt.tight_layout()
-        plt.savefig("weekly_intensity.png")  # Saves the graph as a file
-        print("\nGraph saved as 'weekly_intensity.png' in your folder.")
+                # Show graph if Intensity exists
+                if "Intensity" in df.columns:
+                    st.subheader("📈 Weekly Intensity Graph")
+                    fig, ax = plt.subplots()
+                    ax.plot(df["Day"], df["Intensity"], marker="o")
+                    ax.set_xlabel("Day")
+                    ax.set_ylabel("Intensity")
+                    ax.set_title("Weekly Training Load")
+                    st.pyplot(fig)
 
-except Exception as e:
-    print(f"Error: {str(e)}")
+            except Exception as e:
+                st.error(f"Error generating plan: {str(e)}")
 
+st.divider()
+st.caption("⚠️ AI-generated advice is for educational purposes only.")
