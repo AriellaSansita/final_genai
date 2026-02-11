@@ -5,14 +5,14 @@ import google.generativeai as genai
 # ---------------- CONFIG ----------------
 # Ensure you set the GOOGLE_API_KEY environment variable with your actual API key
 # Example: export GOOGLE_API_KEY=your_actual_api_key_here
-api_key = ("AIzaSyBst6SuMVcJTTQ4olcQ3LwUpgonD1GsHNI")
+api_key = os.getenv ("AIzaSyBst6SuMVcJTTQ4olcQ3LwUpgonD1GsHNI")
 if not api_key:
     st.error("Please set the GOOGLE_API_KEY environment variable with your Google Generative AI API key.")
     st.stop()
 
 genai.configure(api_key=api_key)
 # Using a known working model; adjust if needed (e.g., "gemini-1.0-pro" if available)
-model = genai.GenerativeModel("gemini-1.5-flash")
+model = genai.GenerativeModel("gemini-2.5-flash")
 
 st.set_page_config(page_title="CoachBot AI", page_icon="🏋️", layout="centered")
 
