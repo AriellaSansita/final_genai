@@ -1,118 +1,119 @@
 import streamlit as st
 import google.generativeai as genai
-import matplotlib.pyplot as plt
-import pandas as pd
-import json
 
 # ---------------- CONFIG ----------------
-st.set_page_config(page_title="CoachBot AI", page_icon="🏋️", layout="centered")
+genai.configure(api_key="YOUR_GEMINI_API_KEY")
 
-# Get API key from Streamlit Secrets
-try:
-    api_key = st.secrets["GOOGLE_API_KEY"]
-except Exception:
-    st.error("GOOGLE_API_KEY not found. Add it in Streamlit → App Settings → Secrets.")
-    st.stop()
-
-genai.configure(api_key=api_key)
 model = genai.GenerativeModel("gemini-2.5-flash")
 
-# ---------------- UI ----------------
-st.title("🏋️ CoachBot AI")
-st.caption("AI-powered personalized fitness & sports coaching (data + graphs)")
+st.set_page_config(page_title="CoachBot AI", layout="wide")
 
-st.divider()
+st.title("🏆 CoachBot AI - Smart Fitness Assistant")
+st.write("Personalized AI Coach for Young Athletes")
 
-sport = st.text_input("Sport", placeholder="e.g., Football, Cricket, Basketball")
-position = st.text_input("Player Position", placeholder="e.g., Striker, Bowler, Guard")
-goal = st.text_input("Primary Goal", placeholder="e.g., Build stamina, Strength, Recovery")
-injury = st.text_input("Injury / Risk Area", placeholder="e.g., Knee strain, None")
-diet = st.selectbox("Diet Preference", ["No Preference", "Vegetarian", "Non-Vegetarian", "Vegan"])
+# ---------------- USER INPUT ----------------
+sport = st.selectbox("Select Sport", ["Football", "Cricket", "Basketball", "Athletics", "Other"])
+position = st.text_input("Player Position")
+injury = st.text_input("Injury History / Risk Area (write 'None' if no injury)")
+goal = st.selectbox("Primary Goal", ["Stamina", "Strength", "Speed", "Recovery", "Skill Improvement"])
+diet = st.selectbox("Diet Type", ["Vegetarian", "Non-Vegetarian", "Vegan"])
+intensity = st.selectbox("Training Intensity", ["Low", "Moderate", "High"])
+weakness = st.text_input("Biggest Weakness (optional)")
+age = st.slider("Age", 10, 25, 15)
 
-st.divider()
-
+# ---------------- FEATURE SELECT ----------------
 feature = st.selectbox(
-    "What would you like to generate?",
+    "Choose Coaching Feature",
     [
+        # Mandatory
         "Full Workout Plan",
-        "Recovery & Injury-Safe Training",
-        "Weekly Nutrition Plan",
-        "Warm-up & Cooldown Routine",
-        "Tactical Improvement Tips"
+        "Injury Recovery Plan",
+        "Tactical Coaching",
+        "Nutrition Plan",
+        "Warm-up & Cooldown",
+        "Stamina Builder",
+        "Mental Focus Training",
+        "Hydration Strategy",
+        "Skill Drills",
+        "Weekly Training Plan",
+
+        # Optional
+        "Progress Predictor",
+        "Weakness Analyzer",
+        "Match Strategy",
+        "Pre-Match Routine",
+        "Post-Match Recovery",
+        "Motivation Coach",
+        "Injury Risk Predictor",
+        "Mobility & Stretching",
+        "Tournament Preparation",
+        "Hydration Optimizer"
     ]
 )
 
-# ---------------- PROMPT LOGIC ----------------
-def build_prompt(feature):
-    """
-    Ask the AI to output structured JSON data instead of paragraphs.
-    Each entry includes Day, Workout/Task, Intensity (1-100).
-    """
+# ---------------- PROMPT BUILDER ----------------
+def build_prompt():
     base = f"""
-You are a professional sports coach.
+    You are a professional youth sports coach AI.
 
-Athlete Profile:
-Sport: {sport}
-Position: {position}
-Goal: {goal}
-Injury/Risk Area: {injury}
-Diet Preference: {diet}
-
-Follow safe training practices. Avoid medical diagnosis.
-
-Output 7 entries for the week (Monday to Sunday) as JSON.
-Format each entry as:
-{{"Day": "Monday", "Workout": "Squats, Push-ups", "Intensity": 70}}
-
-Do NOT include any text outside JSON.
-"""
+    Athlete Profile:
+    Sport: {sport}
+    Position: {position}
+    Age: {age}
+    Injury History: {injury}
+    Training Intensity: {intensity}
+    Diet: {diet}
+    Goal: {goal}
+    Weakness: {weakness}
+    """
 
     prompts = {
-        "Full Workout Plan": base,
-        "Recovery & Injury-Safe Training": base.replace("Workout", "Recovery Routine"),
-        "Weekly Nutrition Plan": base.replace("Workout", "Meals"),
-        "Warm-up & Cooldown Routine": base.replace("Workout", "Warm-up & Cooldown"),
-        "Tactical Improvement Tips": base.replace("Workout", "Tactical Tips")
+        # Mandatory
+        "Full Workout Plan": "Generate a full-body personalized workout plan.",
+        "Injury Recovery Plan": "Create a safe recovery training program avoiding injury risk.",
+        "Tactical Coaching": "Provide tactical and decision-making coaching tips.",
+        "Nutrition Plan": "Generate a weekly athlete nutrition plan.",
+        "Warm-up & Cooldown": "Create a warm-up and cooldown routine for injury prevention.",
+        "Stamina Builder": "Design a stamina and endurance improvement program.",
+        "Mental Focus Training": "Provide mental training and focus strategies for competition.",
+        "Hydration Strategy": "Suggest hydration and electrolyte balance strategy.",
+        "Skill Drills": "Generate skill improvement drills specific to the athlete.",
+        "Weekly Training Plan": "Create a balanced weekly training schedule.",
+
+        # Optional
+        "Progress Predictor": "Predict athlete improvement over 4 weeks and adjust training.",
+        "Weakness Analyzer": "Analyze weakness and suggest corrective exercises.",
+        "Match Strategy": "Generate match-day strategy and positioning advice.",
+        "Pre-Match Routine": "Create a pre-match preparation routine.",
+        "Post-Match Recovery": "Generate post-match recovery and muscle repair plan.",
+        "Motivation Coach": "Provide motivation and discipline coaching.",
+        "Injury Risk Predictor": "Identify possible injury risks and prevention strategies.",
+        "Mobility & Stretching": "Generate mobility and flexibility routine.",
+        "Tournament Preparation": "Create a 2-week tournament preparation plan.",
+        "Hydration Optimizer": "Optimize hydration schedule based on training intensity."
     }
 
-    return prompts[feature]
+    return base + "\nTask: " + prompts[feature]
 
-# ---------------- GENERATION ----------------
-if st.button("Generate Plan"):
-    if not sport or not goal:
-        st.warning("Please enter at least the Sport and Goal.")
-    else:
-        with st.spinner("CoachBot AI is generating..."):
-            try:
-                response = model.generate_content(
-                    build_prompt(feature),
-                    generation_config={"temperature":0.3, "max_output_tokens":800}
-                )
 
-                # Parse JSON from AI
-                try:
-                    plan_data = json.loads(response.text)
-                    df = pd.DataFrame(plan_data)
-                except Exception:
-                    st.error(f"Failed to parse AI output as JSON.\nRaw output:\n{response.text}")
-                    st.stop()
+# ---------------- GENERATE ----------------
+if st.button("Generate Coaching Advice"):
 
-                # Show as table
-                st.subheader("📋 Weekly Plan Table")
-                st.dataframe(df)
+    prompt = build_prompt()
 
-                # Show graph if Intensity exists
-                if "Intensity" in df.columns:
-                    st.subheader("📈 Weekly Intensity Graph")
-                    fig, ax = plt.subplots()
-                    ax.plot(df["Day"], df["Intensity"], marker="o")
-                    ax.set_xlabel("Day")
-                    ax.set_ylabel("Intensity")
-                    ax.set_title("Weekly Training Load")
-                    st.pyplot(fig)
+    with st.spinner("CoachBot is thinking..."):
+        try:
+            response = model.generate_content(
+                prompt,
+                generation_config={
+                    "temperature": 0.6,
+                    "top_p": 0.9,
+                    "max_output_tokens": 800
+                }
+            )
+            st.success("CoachBot Advice Generated")
+            st.write(response.text)
 
-            except Exception as e:
-                st.error(f"Error generating plan: {str(e)}")
+        except Exception as e:
+            st.error(f"Error: {e}")
 
-st.divider()
-st.caption("⚠️ AI-generated advice is for educational purposes only.")
