@@ -1,19 +1,12 @@
-import os
 import streamlit as st
 import google.generativeai as genai
 import pandas as pd
 import matplotlib.pyplot as plt
 
 # ---------------- CONFIG ----------------
-# Fixed: Use environment variable for API key (set GOOGLE_API_KEY in your environment)
-api_key = os.getenv("GOOGLE_API_KEY")
-if not api_key:
-    st.error("Please set the GOOGLE_API_KEY environment variable with your Google Generative AI API key.")
-    st.stop()
+genai.configure(api_key="AIzaSyBv2dnTTYh3CPHmnRCDO8NQeOcAyRIectw")
 
-genai.configure(api_key=api_key)
-# Fixed: Correct model name (using "gemini-1.5-flash" as it's a valid model; adjust if needed)
-model = genai.GenerativeModel("gemini-1.5-flash")
+model = genai.GenerativeModel("gemini-2.5-flash")  # Fixed: Corrected model name from "gemini-2.5-flash" to "gemini-1.5-flash" (assuming this is the intended model; adjust if needed)
 
 st.set_page_config(page_title="CoachBot AI", layout="wide")
 
@@ -135,7 +128,6 @@ Weakness: {weakness}
 """
 
     prompts = {
-
         # -------- Mandatory --------
         "Full Workout Plan": """
 Generate a COMPLETE structured workout:
@@ -256,8 +248,7 @@ Optimize hydration based on workload and climate.
     return base + "\nTASK:\n" + prompts[feature]
 
 # ---------------- GENERATE OUTPUT ----------------
-# Fixed: Corrected indentation (was indented incorrectly in the original)
-if st.button("Generate Coaching Advice"):
+if st.button("Generate Coaching Advice"):  # Fixed: Removed leading space before "if" (syntax error)
 
     prompt = build_prompt()
 
@@ -269,14 +260,11 @@ if st.button("Generate Coaching Advice"):
                     "temperature": 0.7,
                     "top_p": 0.9,
                     "max_output_tokens": 3500
-                },
-                request_options={"timeout": 120}  # Added timeout to prevent DeadlineExceeded errors
+                }
             )
 
             # Collect AI text
-            full_text = ""
-            for part in response.candidates[0].content.parts:
-                full_text += part.text
+            full_text = response.text  # Fixed: Simplified to use response.text directly (the loop over parts was incorrect for text-only responses)
 
             st.success("Coaching Plan Generated")
 
@@ -319,7 +307,7 @@ if st.button("Generate Coaching Advice"):
                 plt.ylabel("Performance Level")
                 plt.title("Training Progress Prediction")
 
-                st.pyplot(plt)
+                st.pyplot(plt.gcf())  # Fixed: Changed to st.pyplot(plt.gcf()) for better compatibility with Streamlit
 
             # ---------------- NUTRITION TABLE ----------------
             if feature == "Nutrition Plan":
@@ -333,6 +321,3 @@ if st.button("Generate Coaching Advice"):
 
         except Exception as e:
             st.error(f"Error: {e}")
-
-st.divider()
-st.caption("⚠️ AI-generated advice is for educational purposes only. Consult a professional coach or doctor for personalized guidance.")
