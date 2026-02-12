@@ -227,21 +227,30 @@ if st.button("Generate Coaching Advice"):
                 st.write("### 🏋️ Workout Plan")
                 st.dataframe(df)
 
-            # -------- WEEKLY SCHEDULE --------
+            # ---------------- WEEKLY SCHEDULE ----------------
             if feature == "Weekly Training Plan":
-                days = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]
-                focus_pool = ["Strength","Cardio","Skills","Speed","Mobility"]
-
-                schedule = []
-                for i in range(7):
-                    if i < training_days:
-                        schedule.append(focus_pool[i % len(focus_pool)])
-                    else:
-                        schedule.append("Rest / Recovery")
-
-                schedule_df = pd.DataFrame({"Day": days,"Training Focus": schedule})
+                days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+                
+                # Determine training focus for active days
+                training_focus_list = ["Strength", "Cardio", "Skills", "Speed", "Mobility", "Technique", "Agility"]
+                
+                # Assign focus only to the number of training days
+                training_days_count = training_days  # from your slider input
+                schedule_focus = training_focus_list[:training_days_count]
+                
+                # Fill remaining days with "Rest / Recovery"
+                schedule_focus += ["Rest / Recovery"] * (7 - training_days_count)
+                
+                # Build the table
+                schedule_data = {
+                    "Day": days,
+                    "Training Focus": schedule_focus
+                }
+                
+                schedule_df = pd.DataFrame(schedule_data)
                 st.write("### 📅 Weekly Training Schedule")
                 st.table(schedule_df)
+
 
             # -------- PROGRESS GRAPH --------
             if feature in ["Progress Predictor","Stamina Builder"]:
