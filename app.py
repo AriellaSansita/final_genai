@@ -12,26 +12,65 @@ st.title("🏆 CoachBot AI - Smart Fitness Assistant")
 st.write("AI-powered personalized coach for young athletes")
 
 # ---------------- USER INPUT ----------------
-sport = st.selectbox("Sport", ["Football", "Cricket", "Basketball", "Athletics", "Other"])
+# ---------------- SPORT SELECTION ----------------
+
+sports_list = [
+    "Football",
+    "Cricket",
+    "Basketball",
+    "Athletics",
+    "Badminton",
+    "Tennis",
+    "Hockey",
+    "Volleyball",
+    "Kabaddi",
+    "Table Tennis",
+    "Swimming",
+    "Martial Arts",
+    "Other"
+]
+
+sport = st.selectbox("Sport", sports_list)
+
+# ---------------- SPORT-SPECIFIC POSITIONS ----------------
 
 positions_by_sport = {
     "Football": ["Goalkeeper", "Defender", "Midfielder", "Winger", "Striker"],
     "Cricket": ["Batsman", "Bowler", "All-Rounder", "Wicket Keeper"],
     "Basketball": ["Point Guard", "Shooting Guard", "Small Forward", "Power Forward", "Center"],
     "Athletics": ["Sprinter", "Long Distance Runner", "Jumper", "Thrower"],
-    "Other": ["General Athlete"]
+    "Badminton": ["Singles Player", "Doubles Player"],
+    "Tennis": ["Singles Player", "Doubles Player"],
+    "Hockey": ["Goalkeeper", "Defender", "Midfielder", "Forward"],
+    "Volleyball": ["Setter", "Libero", "Spiker", "Blocker"],
+    "Kabaddi": ["Raider", "Defender", "All-Rounder"],
+    "Table Tennis": ["Singles Player", "Doubles Player"],
+    "Swimming": ["Freestyle Specialist", "Backstroke Specialist", "Butterfly Specialist"],
+    "Martial Arts": ["Striker", "Grappler", "Mixed Fighter"]
 }
 
-position = st.selectbox(
-    "Player Position",
-    positions_by_sport.get(sport, ["General Athlete"])
-)
+# ---------------- POSITION LOGIC ----------------
+
+if sport == "Other":
+    custom_sport = st.text_input("Enter Your Sport")
+    sport = custom_sport if custom_sport else "Other Sport"
+
+    custom_position = st.text_input("Enter Your Role / Position")
+    position = custom_position if custom_position else "General Athlete"
+
+else:
+    position = st.selectbox(
+        "Player Position",
+        positions_by_sport.get(sport, ["General Athlete"])
+    )
+
+
 injury = st.text_input("Injury History / Risk Area (type 'None' if no injury)")
 goal = st.selectbox("Primary Goal", ["Stamina", "Strength", "Speed", "Recovery", "Skill Improvement"])
 diet = st.selectbox("Diet Type", ["Vegetarian", "Non-Vegetarian", "Vegan"])
 intensity = st.selectbox("Training Intensity", ["Low", "Moderate", "High"])
 weakness = st.text_input("Biggest Weakness (optional)")
-age = st.slider("Age", 10, 25, 15)
+age = st.slider("Age", 10, 50, 15)
 
 # ---------------- FEATURE SELECT ----------------
 feature = st.selectbox(
