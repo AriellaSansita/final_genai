@@ -1,5 +1,8 @@
 import streamlit as st
 import google.generativeai as genai
+import pandas as pd
+import matplotlib.pyplot as plt
+
 
 # ---------------- CONFIG ----------------
 genai.configure(api_key="AIzaSyB9VfhS0_sApB2TBRzEi06G1lZlwgDOKnA")
@@ -250,34 +253,97 @@ Optimize hydration based on workload and climate.
 
 
 # ---------------- GENERATE OUTPUT ----------------
-if st.button("Generate Coaching Advice"):
+st.success("Coaching Plan Generated")
 
-    if position == "":
-        st.warning("Please enter player position")
-    else:
-        prompt = build_prompt()
+full_text = ""
+for part in response.candidates[0].content.parts:
+    full_text += part.text
 
-        with st.spinner("CoachBot analyzing athlete profile..."):
-            try:
-                response = model.generate_content(
-                    prompt,
-                    generation_config={
-                        "temperature": 0.7,
-                        "top_p": 0.9,
-                        "max_output_tokens": 20000
-                    }
-                )
+st.write(full_text)
 
-                st.success("Coaching Plan Generated")
-                full_text = ""
+# ---------------- WEEKLY TRAINING SCHEDULE TABLE ----------------
+schedule_data = {
+    "Day": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+    "Focus": ["Strength", "Cardio", "Skills", "Rest", "Speed", "Match Practice", "Recovery"]
+}
 
-                for part in response.candidates[0].content.parts:
-                    full_text += part.text
+schedule_df = pd.DataFrame(schedule_data)
 
-                st.write(full_text)
+st.write("### 📅 Weekly Training Schedule")
+st.table(schedule_df)
+
+# Collect full AI text
+full_text = ""
+for part in response.candidates[0].content.parts:
+    full_text += part.text
+
+# Summary header
+st.write("### 📋 Quick Summary")
+
+# Collapse long AI text (so users don’t suffer)
+with st.expander("Show Full AI Explanation"):
+    st.write(full_text)
+
+# ---------------- WORKOUT TABLE ----------------
+if "Workout" in feature or "Training" in feature:
+    workout_data = {
+        "Exercise": ["Warm-up Jog", "Push-ups", "Squats", "Sprints", "Cooldown Stretch"],
+        "Sets": [1, 3, 3, 5, 1],
+        "Reps / Time": ["10 mins", "12 reps", "15 reps", "30 sec", "10 mins"]
+    }
+
+    df = pd.DataFrame(workout_data)
+    st.write("### 🏋️ Workout Plan Table")
+    st.dataframe(df)
+
+# ---------------- WEEKLY SCHEDULE TABLE ----------------
+schedule_data = {
+    "Day": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+    "Training Focus": ["Strength", "Cardio", "Skills", "Rest", "Speed", "Match Practice", "Recovery"]
+}
+
+schedule_df = pd.DataFrame(schedule_data)
+st.write("### 📅 Weekly Training Schedule")
+st.table(schedule_df)
+
+# ---------------- PROGRESS GRAPH ----------------
+st.write("### 📈 Expected Progress Over 4 Weeks")
+
+weeks = [1, 2, 3, 4]
+performance = [60, 70, 80, 90]
+
+plt.figure()
+plt.plot(weeks, performance, marker="o")
+plt.xlabel("Week")
+plt.ylabel("Performance Level")
+plt.title("Training Progress Prediction")
+
+st.pyplot(plt)
+
+st.write("### 📈 Expected Progress Over 4 Weeks")
+
+weeks = [1, 2, 3, 4]
+performance = [60, 70, 80, 90]
+
+plt.figure()
+plt.plot(weeks, performance, marker="o")
+plt.xlabel("Week")
+plt.ylabel("Performance Level")
+plt.title("Training Progress Prediction")
+
+st.pyplot(plt)
 
 
+nutrition_data = {
+    "Meal": ["Breakfast", "Lunch", "Dinner", "Snacks"],
+    "Focus": ["Carbs + Protein", "Balanced", "Protein Heavy", "Fruits & Nuts"]
+}
 
+nutrition_df = pd.DataFrame(nutrition_data)
+st.write("### 🥗 Nutrition Guide")
+st.dataframe(nutrition_df)
+
+                
             except Exception as e:
                 st.error(f"Error: {e}")
 
