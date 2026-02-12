@@ -2,77 +2,6 @@ import streamlit as st
 import google.generativeai as genai
 import pandas as pd
 import matplotlib.pyplot as plt
-import re
-
-# ---------------- GENERATE OUTPUT ----------------
-if st.button("Generate Coaching Advice"):
-
-    if position == "":
-        st.warning("Please enter player position")
-    else:
-        prompt = build_prompt()
-
-        with st.spinner("CoachBot analyzing athlete profile..."):
-            try:
-                response = model.generate_content(
-                    prompt,
-                    generation_config={
-                        "temperature": 0.7,
-                        "top_p": 0.9,
-                        "max_output_tokens": 20000
-                    }
-                )
-
-                full_text = ""
-                for part in response.candidates[0].content.parts:
-                    full_text += part.text
-
-                st.success("Coaching Plan Generated")
-
-                # ---------------- SECTION SPLITTER ----------------
-                sections = re.split(r"\n(?=\d+\.)", full_text)
-
-                for section in sections:
-                    st.markdown(f"### {section[:80]}")  
-                    st.write(section)
-
-                # ---------------- WEEKLY TRAINING TABLE ----------------
-                if "Weekly Training Schedule" in full_text:
-                    st.markdown("## 📅 Weekly Training Schedule")
-
-                    days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-                    focus = ["Strength", "Cardio", "Skills", "Rest", "Speed", "Match Practice", "Recovery"]
-
-                    df = pd.DataFrame({"Day": days, "Training Focus": focus})
-                    st.table(df)
-
-                # ---------------- PROGRESS GRAPH ----------------
-                if "Expected Progress" in full_text:
-                    st.markdown("## 📈 Expected Progress Over 4 Weeks")
-
-                    weeks = [1, 2, 3, 4]
-                    progress = [10, 25, 45, 65]
-
-                    fig = plt.figure()
-                    plt.plot(weeks, progress)
-                    plt.xlabel("Week")
-                    plt.ylabel("Performance Improvement %")
-                    plt.title("Predicted Athlete Progress")
-                    st.pyplot(fig)
-
-                # ---------------- NUTRITION TABLE ----------------
-                if "Nutrition" in full_text:
-                    st.markdown("## 🥗 Nutrition Guide")
-
-                    meals = ["Breakfast", "Lunch", "Dinner", "Snacks"]
-                    focus = ["Carbs + Protein", "Balanced", "Protein Heavy", "Fruits & Nuts"]
-
-                    nutrition_df = pd.DataFrame({"Meal": meals, "Focus": focus})
-                    st.table(nutrition_df)
-
-            except Exception as e:
-                st.error(f"Error: {e}")
-
 
 
 # ---------------- CONFIG ----------------
@@ -85,6 +14,7 @@ st.set_page_config(page_title="CoachBot AI", layout="wide")
 st.title("🏆 CoachBot AI - Smart Fitness Assistant")
 st.write("AI-powered personalized coach for young athletes")
 
+# ---------------- USER INPUT ----------------
 # ---------------- SPORT SELECTION ----------------
 
 sports_list = [
@@ -320,71 +250,81 @@ Optimize hydration based on workload and climate.
 
     return base + "\nTASK:\n" + prompts[feature]
 
+
+
 # ---------------- GENERATE OUTPUT ----------------
 if st.button("Generate Coaching Advice"):
 
-    if position == "":
-        st.warning("Please enter player position")
-    else:
-        prompt = build_prompt()
+    prompt = build_prompt()
 
-        with st.spinner("CoachBot analyzing athlete profile..."):
-            try:
-                response = model.generate_content(
-                    prompt,
-                    generation_config={
-                        "temperature": 0.7,
-                        "top_p": 0.9,
-                        "max_output_tokens": 2000
-                    }
-                )
+    with st.spinner("CoachBot analyzing athlete profile..."):
+        try:
+            response = model.generate_content(
+                prompt,
+                generation_config={
+                    "temperature": 0.7,
+                    "top_p": 0.9,
+                    "max_output_tokens": 1800
+                }
+            )
 
-                full_text = ""
-                for part in response.candidates[0].content.parts:
-                    full_text += part.text
+            # Collect AI text
+            full_text = ""
+            for part in response.candidates[0].content.parts:
+                full_text += part.text
 
-                st.success("Coaching Plan Generated")
+            st.success("Coaching Plan Generated")
 
-                # ---------------- SECTION SPLITTER ----------------
-                sections = re.split(r"\n(?=\d+\.)", full_text)
+            # Collapsible AI explanation
+            st.write("### 📋 Quick Summary")
+            with st.expander("Show Full AI Explanation"):
+                st.write(full_text)
 
-                for section in sections:
-                    st.markdown(f"### {section[:80]}")  
-                    st.write(section)
+            # ---------------- WORKOUT TABLE ----------------
+            if "Workout" in feature or "Training" in feature:
+                workout_data = {
+                    "Exercise": ["Warm-up Jog", "Push-ups", "Squats", "Sprints", "Cooldown Stretch"],
+                    "Sets": [1, 3, 3, 5, 1],
+                    "Reps / Time": ["10 mins", "12 reps", "15 reps", "30 sec", "10 mins"]
+                }
 
-                # ---------------- WEEKLY TRAINING TABLE ----------------
-                if "Weekly Training Schedule" in full_text:
-                    st.markdown("## 📅 Weekly Training Schedule")
+                df = pd.DataFrame(workout_data)
+                st.write("### 🏋️ Workout Plan Table")
+                st.dataframe(df)
 
-                    days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-                    focus = ["Strength", "Cardio", "Skills", "Rest", "Speed", "Match Practice", "Recovery"]
+            # ---------------- WEEKLY SCHEDULE TABLE ----------------
+            schedule_data = {
+                "Day": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+                "Training Focus": ["Strength", "Cardio", "Skills", "Rest", "Speed", "Match Practice", "Recovery"]
+            }
 
-                    df = pd.DataFrame({"Day": days, "Training Focus": focus})
-                    st.table(df)
+            schedule_df = pd.DataFrame(schedule_data)
+            st.write("### 📅 Weekly Training Schedule")
+            st.table(schedule_df)
 
-                # ---------------- PROGRESS GRAPH ----------------
-                if "Expected Progress" in full_text:
-                    st.markdown("## 📈 Expected Progress Over 4 Weeks")
+            # ---------------- PROGRESS GRAPH ----------------
+            st.write("### 📈 Expected Progress Over 4 Weeks")
 
-                    weeks = [1, 2, 3, 4]
-                    progress = [10, 25, 45, 65]
+            weeks = [1, 2, 3, 4]
+            performance = [60, 70, 80, 90]
 
-                    fig = plt.figure()
-                    plt.plot(weeks, progress)
-                    plt.xlabel("Week")
-                    plt.ylabel("Performance Improvement %")
-                    plt.title("Predicted Athlete Progress")
-                    st.pyplot(fig)
+            plt.figure()
+            plt.plot(weeks, performance, marker="o")
+            plt.xlabel("Week")
+            plt.ylabel("Performance Level")
+            plt.title("Training Progress Prediction")
 
-                # ---------------- NUTRITION TABLE ----------------
-                if "Nutrition" in full_text:
-                    st.markdown("## 🥗 Nutrition Guide")
+            st.pyplot(plt)
 
-                    meals = ["Breakfast", "Lunch", "Dinner", "Snacks"]
-                    focus = ["Carbs + Protein", "Balanced", "Protein Heavy", "Fruits & Nuts"]
+            # ---------------- NUTRITION TABLE ----------------
+            nutrition_data = {
+                "Meal": ["Breakfast", "Lunch", "Dinner", "Snacks"],
+                "Focus": ["Carbs + Protein", "Balanced", "Protein Heavy", "Fruits & Nuts"]
+            }
 
-                    nutrition_df = pd.DataFrame({"Meal": meals, "Focus": focus})
-                    st.table(nutrition_df)
+            nutrition_df = pd.DataFrame(nutrition_data)
+            st.write("### 🥗 Nutrition Guide")
+            st.dataframe(nutrition_df)
 
-            except Exception as e:
-                st.error(f"Error: {e}")
+        except Exception as e:
+            st.error(f"Error: {e}")
