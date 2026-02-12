@@ -280,55 +280,55 @@ if st.button("Generate Coaching Advice"):
             with st.expander("Show Full AI Explanation"):
                 st.write(full_text)
 
-# ---------------- WORKOUT TABLE ----------------
-if feature in ["Full Workout Plan", "Weekly Training Plan", "Stamina Builder"]:
-    workout_data = {
-        "Exercise": ["Warm-up Jog", "Push-ups", "Squats", "Sprints", "Cooldown Stretch"],
-        "Sets": [1, 3, 3, 5, 1],
-        "Reps / Time": ["10 mins", "12 reps", "15 reps", "30 sec", "10 mins"]
-    }
-    df = pd.DataFrame(workout_data)
-    st.write("### 🏋️ Workout Plan Table")
-    st.dataframe(df)
-
-
-# ---------------- WEEKLY SCHEDULE ----------------
-if feature == "Weekly Training Plan":
-    schedule_data = {
-        "Day": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-        "Training Focus": ["Strength", "Cardio", "Skills", "Rest", "Speed", "Match Practice", "Recovery"]
-    }
-    schedule_df = pd.DataFrame(schedule_data)
-    st.write("### 📅 Weekly Training Schedule")
-    st.table(schedule_df)
-
-
-# ---------------- PROGRESS GRAPH ----------------
-if feature in ["Progress Predictor", "Stamina Builder"]:
-    st.write("### 📈 Expected Progress Over 4 Weeks")
-
-    weeks = [1, 2, 3, 4]
-    performance = [60, 70, 80, 90]  # later we can make AI-driven
-
-    plt.figure()
-    plt.plot(weeks, performance, marker="o")
-    plt.xlabel("Week")
-    plt.ylabel("Performance Level")
-    plt.title("Training Progress Prediction")
-
-    st.pyplot(plt)
-
-
-# ---------------- NUTRITION TABLE ----------------
-if feature == "Nutrition Plan":
-    nutrition_data = {
-        "Meal": ["Breakfast", "Lunch", "Dinner", "Snacks"],
-        "Focus": ["Carbs + Protein", "Balanced", "Protein Heavy", "Fruits & Nuts"]
-    }
-    nutrition_df = pd.DataFrame(nutrition_data)
-    st.write("### 🥗 Nutrition Guide")
-    st.dataframe(nutrition_df)
-
-
-        except Exception as e:
-            st.error(f"Error: {e}")
+        # ---------------- WORKOUT TABLE ----------------
+        if feature in ["Full Workout Plan", "Weekly Training Plan", "Stamina Builder"]:
+            workout_data = {
+                "Exercise": ["Warm-up Jog", "Push-ups", "Squats", "Sprints", "Cooldown Stretch"],
+                "Sets": [1, 3, 3, 5, 1],
+                "Reps / Time": ["10 mins", "12 reps", "15 reps", "30 sec", "10 mins"]
+            }
+            df = pd.DataFrame(workout_data)
+            st.write("### 🏋️ Workout Plan Table")
+            st.dataframe(df)
+        
+        
+        # ---------------- WEEKLY SCHEDULE ----------------
+        if feature == "Weekly Training Plan":
+            schedule_data = {
+                "Day": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+                "Training Focus": ["Strength", "Cardio", "Skills", "Rest", "Speed", "Match Practice", "Recovery"]
+            }
+            schedule_df = pd.DataFrame(schedule_data)
+            st.write("### 📅 Weekly Training Schedule")
+            st.table(schedule_df)
+        
+        
+        # ---------------- PROGRESS GRAPH ----------------
+        if feature in ["Progress Predictor", "Stamina Builder"]:
+            st.write("### 📈 Expected Progress Over 4 Weeks")
+        
+            weeks = [1, 2, 3, 4]
+            performance = [60, 70, 80, 90]  # later we can make AI-driven
+        
+            plt.figure()
+            plt.plot(weeks, performance, marker="o")
+            plt.xlabel("Week")
+            plt.ylabel("Performance Level")
+            plt.title("Training Progress Prediction")
+        
+            st.pyplot(plt)
+        
+        
+        # ---------------- NUTRITION TABLE ----------------
+        if feature == "Nutrition Plan":
+            nutrition_data = {
+                "Meal": ["Breakfast", "Lunch", "Dinner", "Snacks"],
+                "Focus": ["Carbs + Protein", "Balanced", "Protein Heavy", "Fruits & Nuts"]
+            }
+            nutrition_df = pd.DataFrame(nutrition_data)
+            st.write("### 🥗 Nutrition Guide")
+            st.dataframe(nutrition_df)
+        
+        
+                except Exception as e:
+                    st.error(f"Error: {e}")
