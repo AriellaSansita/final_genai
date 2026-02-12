@@ -4,7 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 # ---------------- CONFIG ----------------
-genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
+genai.configure(api_key=st.secrets["AIzaSyBv2dnTTYh3CPHmnRCDO8NQeOcAyRIectw"])
 model = genai.GenerativeModel("gemini-2.5-flash")
 
 st.set_page_config(page_title="CoachBot AI", layout="wide")
