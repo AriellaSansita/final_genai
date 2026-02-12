@@ -14,7 +14,6 @@ st.set_page_config(page_title="CoachBot AI", layout="wide")
 st.title("🏆 CoachBot AI - Smart Fitness Assistant")
 st.write("AI-powered personalized coach for young athletes")
 
-# ---------------- USER INPUT ----------------
 # ---------------- SPORT SELECTION ----------------
 
 sports_list = [
@@ -264,7 +263,7 @@ if st.button("Generate Coaching Advice"):
                 generation_config={
                     "temperature": 0.7,
                     "top_p": 0.9,
-                    "max_output_tokens": 1800
+                    "max_output_tokens": 20000
                 }
             )
 
