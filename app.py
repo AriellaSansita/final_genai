@@ -253,97 +253,78 @@ Optimize hydration based on workload and climate.
 
 
 # ---------------- GENERATE OUTPUT ----------------
-st.success("Coaching Plan Generated")
+if st.button("Generate Coaching Advice"):
 
-full_text = ""
-for part in response.candidates[0].content.parts:
-    full_text += part.text
+    prompt = build_prompt()
 
-st.write(full_text)
+    with st.spinner("CoachBot analyzing athlete profile..."):
+        try:
+            response = model.generate_content(
+                prompt,
+                generation_config={
+                    "temperature": 0.7,
+                    "top_p": 0.9,
+                    "max_output_tokens": 1800
+                }
+            )
 
-# ---------------- WEEKLY TRAINING SCHEDULE TABLE ----------------
-schedule_data = {
-    "Day": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
-    "Focus": ["Strength", "Cardio", "Skills", "Rest", "Speed", "Match Practice", "Recovery"]
-}
+            # Collect AI text
+            full_text = ""
+            for part in response.candidates[0].content.parts:
+                full_text += part.text
 
-schedule_df = pd.DataFrame(schedule_data)
+            st.success("Coaching Plan Generated")
 
-st.write("### 📅 Weekly Training Schedule")
-st.table(schedule_df)
+            # Collapsible AI explanation
+            st.write("### 📋 Quick Summary")
+            with st.expander("Show Full AI Explanation"):
+                st.write(full_text)
 
-# Collect full AI text
-full_text = ""
-for part in response.candidates[0].content.parts:
-    full_text += part.text
+            # ---------------- WORKOUT TABLE ----------------
+            if "Workout" in feature or "Training" in feature:
+                workout_data = {
+                    "Exercise": ["Warm-up Jog", "Push-ups", "Squats", "Sprints", "Cooldown Stretch"],
+                    "Sets": [1, 3, 3, 5, 1],
+                    "Reps / Time": ["10 mins", "12 reps", "15 reps", "30 sec", "10 mins"]
+                }
 
-# Summary header
-st.write("### 📋 Quick Summary")
+                df = pd.DataFrame(workout_data)
+                st.write("### 🏋️ Workout Plan Table")
+                st.dataframe(df)
 
-# Collapse long AI text (so users don’t suffer)
-with st.expander("Show Full AI Explanation"):
-    st.write(full_text)
+            # ---------------- WEEKLY SCHEDULE TABLE ----------------
+            schedule_data = {
+                "Day": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+                "Training Focus": ["Strength", "Cardio", "Skills", "Rest", "Speed", "Match Practice", "Recovery"]
+            }
 
-# ---------------- WORKOUT TABLE ----------------
-if "Workout" in feature or "Training" in feature:
-    workout_data = {
-        "Exercise": ["Warm-up Jog", "Push-ups", "Squats", "Sprints", "Cooldown Stretch"],
-        "Sets": [1, 3, 3, 5, 1],
-        "Reps / Time": ["10 mins", "12 reps", "15 reps", "30 sec", "10 mins"]
-    }
+            schedule_df = pd.DataFrame(schedule_data)
+            st.write("### 📅 Weekly Training Schedule")
+            st.table(schedule_df)
 
-    df = pd.DataFrame(workout_data)
-    st.write("### 🏋️ Workout Plan Table")
-    st.dataframe(df)
+            # ---------------- PROGRESS GRAPH ----------------
+            st.write("### 📈 Expected Progress Over 4 Weeks")
 
-# ---------------- WEEKLY SCHEDULE TABLE ----------------
-schedule_data = {
-    "Day": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-    "Training Focus": ["Strength", "Cardio", "Skills", "Rest", "Speed", "Match Practice", "Recovery"]
-}
+            weeks = [1, 2, 3, 4]
+            performance = [60, 70, 80, 90]
 
-schedule_df = pd.DataFrame(schedule_data)
-st.write("### 📅 Weekly Training Schedule")
-st.table(schedule_df)
+            plt.figure()
+            plt.plot(weeks, performance, marker="o")
+            plt.xlabel("Week")
+            plt.ylabel("Performance Level")
+            plt.title("Training Progress Prediction")
 
-# ---------------- PROGRESS GRAPH ----------------
-st.write("### 📈 Expected Progress Over 4 Weeks")
+            st.pyplot(plt)
 
-weeks = [1, 2, 3, 4]
-performance = [60, 70, 80, 90]
+            # ---------------- NUTRITION TABLE ----------------
+            nutrition_data = {
+                "Meal": ["Breakfast", "Lunch", "Dinner", "Snacks"],
+                "Focus": ["Carbs + Protein", "Balanced", "Protein Heavy", "Fruits & Nuts"]
+            }
 
-plt.figure()
-plt.plot(weeks, performance, marker="o")
-plt.xlabel("Week")
-plt.ylabel("Performance Level")
-plt.title("Training Progress Prediction")
+            nutrition_df = pd.DataFrame(nutrition_data)
+            st.write("### 🥗 Nutrition Guide")
+            st.dataframe(nutrition_df)
 
-st.pyplot(plt)
-
-st.write("### 📈 Expected Progress Over 4 Weeks")
-
-weeks = [1, 2, 3, 4]
-performance = [60, 70, 80, 90]
-
-plt.figure()
-plt.plot(weeks, performance, marker="o")
-plt.xlabel("Week")
-plt.ylabel("Performance Level")
-plt.title("Training Progress Prediction")
-
-st.pyplot(plt)
-
-
-nutrition_data = {
-    "Meal": ["Breakfast", "Lunch", "Dinner", "Snacks"],
-    "Focus": ["Carbs + Protein", "Balanced", "Protein Heavy", "Fruits & Nuts"]
-}
-
-nutrition_df = pd.DataFrame(nutrition_data)
-st.write("### 🥗 Nutrition Guide")
-st.dataframe(nutrition_df)
-
-                
-            except Exception as e:
-                st.error(f"Error: {e}")
-
+        except Exception as e:
+            st.error(f"Error: {e}")
