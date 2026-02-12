@@ -54,15 +54,14 @@ feature = st.selectbox(
 # ---------------- PROMPT BUILDER ----------------
 def build_prompt():
     base = f"""
-You are an expert professional youth sports coach AI.
+You are an expert youth sports coach AI.
 
-STRICT INSTRUCTIONS:
-- Provide detailed, structured, and personalized coaching.
-- DO NOT use generic motivational openings.
-- DO NOT repeat phrases.
-- Focus on practical, real training advice.
-- Adapt based on injury, position, goal, and intensity.
-- Use bullet points and clear sections.
+IMPORTANT:
+- Write a FULL, long, complete response.
+- Do NOT stop early.
+- Always include multiple sections.
+- Minimum length: 6 structured sections.
+- Continue until the full plan is finished.
 
 Athlete Profile:
 Sport: {sport}
@@ -74,9 +73,6 @@ Diet: {diet}
 Goal: {goal}
 Weakness: {weakness}
 """
-
-    prompts = {
-
         # -------- Mandatory --------
         "Full Workout Plan": """
 Generate a COMPLETE structured workout:
@@ -213,12 +209,18 @@ if st.button("Generate Coaching Advice"):
                     generation_config={
                         "temperature": 0.7,
                         "top_p": 0.9,
-                        "max_output_tokens": 900
                     }
                 )
 
                 st.success("Coaching Plan Generated")
-                st.write(response.text)
+                full_text = ""
+
+                for part in response.candidates[0].content.parts:
+                    full_text += part.text
+
+                st.write(full_text)
+
+
 
             except Exception as e:
                 st.error(f"Error: {e}")
