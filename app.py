@@ -7,7 +7,7 @@ from google.api_core.exceptions import ResourceExhausted  # Import the specific 
 
 # ---------------- CONFIG ----------------
 genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
-model = genai.GenerativeModel("gemini-1.5-flash")  # Updated to a valid model name; adjust if needed
+model = genai.GenerativeModel("gemini-2.5-flash")  # Updated to a valid model name; adjust if needed
 
 st.set_page_config(page_title="CoachBot AI", layout="wide")
 st.title("🏆 CoachBot AI - Smart Fitness Assistant")
