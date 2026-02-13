@@ -1,6 +1,7 @@
 import streamlit as st
 import google.generativeai as genai
 import pandas as pd
+import random
 
 # ---------------- CONFIG ----------------
 genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
@@ -82,9 +83,9 @@ def generate_workout_table():
     non_cardio = [e for e in exercises if e["type"] != "cardio"]
     cardio = [e for e in exercises if e["type"] == "cardio"]
 
-    # reserve time for strength/core
-    strength_time = len(non_cardio) * 1
-    cardio_time = max(5, session_duration - strength_time)
+    # realistic time split
+    strength_block = min(20, session_duration * 0.35)
+    cardio_block = session_duration - strength_block
 
     for ex in non_cardio:
         if intensity == "Low":
@@ -94,10 +95,18 @@ def generate_workout_table():
         else:
             sets, reps = 3, "15-20"
 
-        rows.append({"Exercise": ex["name"], "Sets": sets, "Reps / Time": f"{reps} reps"})
+        rows.append({
+            "Exercise": ex["name"],
+            "Sets": sets,
+            "Reps / Time": f"{reps} reps"
+        })
 
     for ex in cardio:
-        rows.append({"Exercise": ex["name"], "Sets": "-", "Reps / Time": f"{cardio_time} min steady pace"})
+        rows.append({
+            "Exercise": ex["name"],
+            "Sets": "-",
+            "Reps / Time": f"{int(cardio_block)} min steady pace"
+        })
 
     return pd.DataFrame(rows)
 
@@ -107,7 +116,7 @@ def build_prompt():
     feature_text = ", ".join(selected_features)
 
     return f"""
-You are a youth sports coach AI. Be SHORT, structured, practical.
+You are a professional youth sports coach AI.
 
 Athlete:
 Sport: {sport}
@@ -120,16 +129,16 @@ Diet: {diet}
 Training Days: {training_days}
 Session Duration: {session_duration}
 
-Focus ONLY on these features: {feature_text}
+Focus ONLY on: {feature_text}
 
 Rules:
-- Max 200 words
+- Max 180 words
 - Bullet points
-- No lecture
-- Practical actions only
+- Practical, short, structured
+- No motivational talk
 
 Sections:
-1. Recovery (only if injury)
+1. Recovery (only if injury exists)
 2. Workout Focus
 3. Weekly Advice
 4. Diet / Hydration
@@ -137,28 +146,46 @@ Sections:
 
 # ---------------- SAFE GEMINI ----------------
 def get_ai_text(prompt):
-
     try:
         response = model.generate_content(prompt)
 
         if not response or not response.candidates:
-            return "⚠️ AI returned no candidates."
+            return "⚠️ AI returned no response."
 
         candidate = response.candidates[0]
 
-        if candidate.finish_reason != 1 and not candidate.content:
-            return "⚠️ AI blocked or empty response."
+        if not candidate.content or not candidate.content.parts:
+            return "⚠️ Empty AI output."
 
         text = ""
-        if candidate.content and candidate.content.parts:
-            for part in candidate.content.parts:
-                if hasattr(part, "text") and part.text:
-                    text += part.text
+        for part in candidate.content.parts:
+            if hasattr(part, "text") and part.text:
+                text += part.text
 
         return text.strip() if text else "⚠️ Empty AI output."
 
     except Exception as e:
         return f"Error: {e}"
+
+# ---------------- NUTRITION (DYNAMIC) ----------------
+def generate_nutrition():
+
+    carb_sources = ["Oats","Brown Rice","Quinoa","Sweet Potato","Whole Wheat"]
+    protein_veg = ["Lentils","Chickpeas","Tofu","Tempeh","Beans"]
+    protein_nonveg = ["Eggs","Chicken","Fish","Yogurt","Paneer"]
+    fats = ["Nuts","Seeds","Peanut Butter","Olive Oil","Avocado"]
+
+    protein = protein_veg if diet != "Non-Vegetarian" else protein_nonveg
+
+    return pd.DataFrame({
+        "Meal":["Breakfast","Lunch","Dinner","Snacks"],
+        "Focus":[
+            f"{random.choice(carb_sources)} + {random.choice(protein)}",
+            f"Balanced: {random.choice(carb_sources)}, {random.choice(protein)}, Veggies",
+            f"Recovery: {random.choice(protein)} + Veggies",
+            f"{random.choice(fats)} + Fruit"
+        ]
+    })
 
 # ---------------- GENERATE ----------------
 if st.button("Generate Coaching Advice"):
@@ -180,22 +207,11 @@ if st.button("Generate Coaching Advice"):
             st.subheader("📅 Weekly Training Schedule")
 
             days = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]
-            workout_types = [
-                "Stamina + Core",
-                "Strength",
-                "Cardio",
-                "Mobility",
-                "Speed",
-                "Technique",
-                "Recovery"
-            ]
+            focus_pool = ["Stamina","Strength","Cardio","Mobility","Speed","Technique","Recovery"]
 
-            schedule = [workout_types[i] if i < training_days else "Rest" for i in range(7)]
+            schedule = [focus_pool[i % len(focus_pool)] if i < training_days else "Rest" for i in range(7)]
             st.table(pd.DataFrame({"Day": days, "Focus": schedule}))
 
         if "Nutrition Plan" in selected_features:
             st.subheader("🥗 Nutrition Guide")
-            st.dataframe(pd.DataFrame({
-                "Meal":["Breakfast","Lunch","Dinner","Snacks"],
-                "Focus":["Carbs + Protein","Balanced","Protein Rich","Fruits + Nuts"]
-            }))
+            st.dataframe(generate_nutrition())
