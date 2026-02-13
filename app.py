@@ -86,6 +86,16 @@ def generate_workout_table(sport, position, goal, intensity, duration):
 
     # Default exercises if sport/position not listed
     ex_list = exercises.get(sport, {}).get(position, ["Push-ups","Squats","Plank","Lunges","Jogging"])
+    # -------- Injury Safety Filter --------
+    inj = injury.lower()
+    if "arm" in inj or "shoulder" in inj:
+        ex_list = [e for e in ex_list if "Push" not in e and "Plank" not in e]
+    if "leg" in inj or "knee" in inj or "ankle" in inj:
+        ex_list = [e for e in ex_list if "Sprint" not in e and "Squat" not in e and "Lunge" not in e]
+    # If everything removed, give safe fallback
+    if len(ex_list) == 0:
+        ex_list = ["Light Mobility","Stretching","Breathing Drills"]
+
 
     # Adjust sets/reps based on intensity
     if intensity == "Low":
@@ -154,7 +164,7 @@ if st.button("Generate Coaching Advice"):
                         st.write(full_text)
 
                     # Show dynamic workout table
-                    if feature in ["Full Workout Plan","Stamina Builder","Weekly Training Plan"]:
+                    if feature in ["Full Workout Plan","Stamina Builder","Weekly Training Plan","Injury Recovery Plan"]:
                         df = generate_workout_table(sport, position, goal, intensity, session_duration)
                         st.write("### 🏋️ Workout Plan")
                         st.dataframe(df)
