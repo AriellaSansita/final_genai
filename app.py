@@ -142,13 +142,11 @@ Sections:
 3. Weekly Advice
 4. Diet Tips
 """
-"""
 
 Provide detailed coaching guidance for:
 {", ".join(selected_features)}
 
 Structure clearly with headings and actionable steps.
-"""
 
 # ---------------- SAFE GEMINI CALL ----------------
 def get_ai_text(prompt):
