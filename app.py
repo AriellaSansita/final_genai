@@ -50,18 +50,20 @@ age = st.slider("Age", 10, 50, 15)
 training_days = st.slider("Training Days / Week", 1, 7, 4)
 session_duration = st.slider("Session Duration (minutes)", 20, 180, 60)
 
-# ---------------- SIDEBAR ----------------
+# ---------------- SIDEBAR FEATURES ----------------
 st.sidebar.header("Select Coaching Features")
 
-features = [
-    "Full Workout Plan","Injury Recovery Plan","Tactical Coaching","Nutrition Plan",
-    "Warm-up & Cooldown","Stamina Builder","Mental Focus Training","Hydration Strategy",
-    "Skill Drills","Weekly Training Plan","Progress Predictor","Weakness Analyzer",
-    "Match Strategy","Pre-Match Routine","Post-Match Recovery","Motivation Coach",
-    "Injury Risk Predictor","Mobility & Stretching","Tournament Preparation","Hydration Optimizer"
+all_features = [
+    "Full Workout Plan",
+    "Injury Recovery Plan",
+    "Weekly Training Plan",
+    "Stamina Builder",
+    "Nutrition Plan",
+    "Hydration Strategy",
+    "Warm-up & Cooldown"
 ]
 
-selected_features = [f for f in features if st.sidebar.checkbox(f, True)]
+selected_features = [f for f in all_features if st.sidebar.checkbox(f, True)]
 
 if st.sidebar.button("Reset All"):
     st.rerun()
@@ -76,6 +78,10 @@ def generate_workout_table():
         exercises = [e for e in exercises if e not in ["Squats","Lunges"]]
     if "shoulder" in inj:
         exercises = [e for e in exercises if e != "Push-ups"]
+
+    # Prevent empty list crash
+    if len(exercises) == 0:
+        exercises = ["Light Walking","Mobility Stretch","Breathing Exercise"]
 
     if intensity == "Low":
         sets = [1]*len(exercises)
@@ -97,7 +103,6 @@ def generate_workout_table():
 
 # ---------------- PROMPT BUILDER ----------------
 def build_prompt():
-
     return f"""
 You are an expert youth sports coach AI.
 
@@ -132,7 +137,7 @@ def get_ai_text(prompt):
                 text = "".join([p.text for p in content.parts if hasattr(p, "text")])
 
         if not text.strip():
-            return "⚠️ AI returned empty response. Try again."
+            return "⚠️ AI returned empty response. Try again later."
 
         return text
 
@@ -164,21 +169,9 @@ if st.button("Generate Coaching Advice"):
             st.subheader("📅 Weekly Training Schedule")
             st.table(pd.DataFrame({"Day": days, "Focus": focus}))
 
-        if "Progress Predictor" in selected_features:
-            st.subheader("📈 Performance Prediction")
-            weeks = [1,2,3,4]
-            performance = [50+training_days*3,60+training_days*3,70+training_days*3,80+training_days*3]
-            plt.figure()
-            plt.plot(weeks, performance, marker="o")
-            plt.xlabel("Week")
-            plt.ylabel("Performance")
-            plt.title("4 Week Progress")
-            st.pyplot(plt)
-
         if "Nutrition Plan" in selected_features:
             st.subheader("🥗 Nutrition Guide")
             st.dataframe(pd.DataFrame({
                 "Meal":["Breakfast","Lunch","Dinner","Snacks"],
                 "Focus":["Carbs+Protein","Balanced","Protein Rich","Fruits+Nuts"]
             }))
-
