@@ -6,7 +6,7 @@ import time
 
 # ---------------- CONFIG ----------------
 genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
-model = genai.GenerativeModel("gemini-2.5-flash")
+model = genai.GenerativeModel("gemini-2.5-flash")  # Updated to a valid model name; adjust if needed
 
 st.set_page_config(page_title="CoachBot AI", layout="wide")
 st.title("🏆 CoachBot AI - Smart Fitness Assistant")
@@ -14,25 +14,25 @@ st.write("AI-powered personalized coach for young athletes")
 
 # ---------------- USER INPUT ----------------
 sports_list = [
-    "Football","Cricket","Basketball","Athletics","Badminton","Tennis",
-    "Hockey","Volleyball","Kabaddi","Table Tennis","Swimming","Martial Arts","Other"
+    "Football", "Cricket", "Basketball", "Athletics", "Badminton", "Tennis",
+    "Hockey", "Volleyball", "Kabaddi", "Table Tennis", "Swimming", "Martial Arts", "Other"
 ]
 
 sport = st.selectbox("Sport", sports_list)
 
 positions_by_sport = {
-    "Football": ["Goalkeeper","Defender","Midfielder","Winger","Striker"],
-    "Cricket": ["Batsman","Bowler","All-Rounder","Wicket Keeper"],
-    "Basketball": ["Point Guard","Shooting Guard","Small Forward","Power Forward","Center"],
-    "Athletics": ["Sprinter","Long Distance Runner","Jumper","Thrower"],
-    "Badminton": ["Singles Player","Doubles Player"],
-    "Tennis": ["Singles Player","Doubles Player"],
-    "Hockey": ["Goalkeeper","Defender","Midfielder","Forward"],
-    "Volleyball": ["Setter","Libero","Spiker","Blocker"],
-    "Kabaddi": ["Raider","Defender","All-Rounder"],
-    "Table Tennis": ["Singles Player","Doubles Player"],
-    "Swimming": ["Freestyle Specialist","Backstroke Specialist","Butterfly Specialist"],
-    "Martial Arts": ["Striker","Grappler","Mixed Fighter"]
+    "Football": ["Goalkeeper", "Defender", "Midfielder", "Winger", "Striker"],
+    "Cricket": ["Batsman", "Bowler", "All-Rounder", "Wicket Keeper"],
+    "Basketball": ["Point Guard", "Shooting Guard", "Small Forward", "Power Forward", "Center"],
+    "Athletics": ["Sprinter", "Long Distance Runner", "Jumper", "Thrower"],
+    "Badminton": ["Singles Player", "Doubles Player"],
+    "Tennis": ["Singles Player", "Doubles Player"],
+    "Hockey": ["Goalkeeper", "Defender", "Midfielder", "Forward"],
+    "Volleyball": ["Setter", "Libero", "Spiker", "Blocker"],
+    "Kabaddi": ["Raider", "Defender", "All-Rounder"],
+    "Table Tennis": ["Singles Player", "Doubles Player"],
+    "Swimming": ["Freestyle Specialist", "Backstroke Specialist", "Butterfly Specialist"],
+    "Martial Arts": ["Striker", "Grappler", "Mixed Fighter"]
 }
 
 if sport == "Other":
@@ -42,9 +42,9 @@ else:
     position = st.selectbox("Player Position", positions_by_sport.get(sport, ["Athlete"]))
 
 injury = st.text_input("Injury History (None if no injury)")
-goal = st.selectbox("Primary Goal", ["Stamina","Strength","Speed","Recovery","Skill Improvement"])
-diet = st.selectbox("Diet Type", ["Vegetarian","Non-Vegetarian","Vegan"])
-intensity = st.selectbox("Training Intensity", ["Low","Moderate","High"])
+goal = st.selectbox("Primary Goal", ["Stamina", "Strength", "Speed", "Recovery", "Skill Improvement"])
+diet = st.selectbox("Diet Type", ["Vegetarian", "Non-Vegetarian", "Vegan"])
+intensity = st.selectbox("Training Intensity", ["Low", "Moderate", "High"])
 weakness = st.text_input("Biggest Weakness (optional)")
 age = st.slider("Age", 10, 50, 15)
 
@@ -55,9 +55,9 @@ session_duration = st.slider("Session Duration (minutes)", 20, 180, 60)
 st.sidebar.header("Select Coaching Features")
 
 features = [
-    "Full Workout Plan","Injury Recovery Plan","Tactical Coaching","Nutrition Plan",
-    "Stamina Builder","Weekly Training Plan","Progress Predictor","Warm-up & Cooldown",
-    "Mental Focus Training","Hydration Strategy","Skill Drills"
+    "Full Workout Plan", "Injury Recovery Plan", "Tactical Coaching", "Nutrition Plan",
+    "Stamina Builder", "Weekly Training Plan", "Progress Predictor", "Warm-up & Cooldown",
+    "Mental Focus Training", "Hydration Strategy", "Skill Drills"
 ]
 
 selected_features = [f for f in features if st.sidebar.checkbox(f, True)]
@@ -67,28 +67,28 @@ if st.sidebar.button("Reset All"):
 
 # ---------------- WORKOUT TABLE ----------------
 def generate_workout_table():
-    exercises = ["Warm-up Jog","Push-ups","Squats","Sprints","Plank","Cooldown Stretch"]
+    exercises = ["Warm-up Jog", "Push-ups", "Squats", "Sprints", "Plank", "Cooldown Stretch"]
 
     if intensity == "Low":
-        sets = [1]*6
-        reps = ["10"]*6
+        sets = [1] * 6
+        reps = ["10"] * 6
     elif intensity == "Moderate":
-        sets = [2]*6
-        reps = ["12-15"]*6
+        sets = [2] * 6
+        reps = ["12-15"] * 6
     else:
-        sets = [3]*6
-        reps = ["15-20"]*6
+        sets = [3] * 6
+        reps = ["15-20"] * 6
 
     df = pd.DataFrame({
         "Exercise": exercises,
         "Sets": sets,
-        "Reps / Time": [f"{r} reps / {session_duration//6} min" for r in reps]
+        "Reps / Time": [f"{r} reps / {session_duration // 6} min" for r in reps]
     })
     return df
 
 # ---------------- PROMPT BUILDER ----------------
-def build_prompt():
-    return f"""
+def build_prompt(selected_features):
+    base = f"""
 You are an expert youth sports coach AI.
 
 Athlete Profile:
@@ -103,17 +103,10 @@ Diet: {diet}
 Goal: {goal}
 Weakness: {weakness}
 
-Generate:
-- Workout
-- Recovery
-- Tactics
-- Nutrition
-- Weekly plan
-- Performance improvement
+Generate a personalized coaching plan based on the selected features.
 """
- prompts = {
 
-        # -------- Mandatory --------
+    prompts = {
         "Full Workout Plan": """
 Generate a COMPLETE structured workout:
 - Warm-up
@@ -192,60 +185,22 @@ Generate FULL weekly training schedule:
         "Progress Predictor": """
 Predict performance improvement over 4 weeks and adjust training.
 """,
+    }
 
-        "Weakness Analyzer": """
-Analyze weakness and create corrective training plan.
-""",
-
-        "Match Strategy": """
-Generate match-day strategy and tactical positioning advice.
-""",
-
-        "Pre-Match Routine": """
-Create complete pre-match preparation routine.
-""",
-
-        "Post-Match Recovery": """
-Generate post-match recovery and muscle repair plan.
-""",
-
-        "Motivation Coach": """
-Provide discipline and motivation guidance with practical steps.
-""",
-
-        "Injury Risk Predictor": """
-Identify possible injury risks and prevention strategies.
-""",
-
-        "Mobility & Stretching": """
-Generate flexibility and mobility improvement routine.
-""",
-
-        "Tournament Preparation": """
-Create a 2-week peak performance tournament preparation plan.
-""",
-
-        "Hydration Optimizer": """
-Optimize hydration based on workload and climate.
-"""
-}
-
-    return base + "\nTASK:\n" + prompts[feature]
-
+    task = "\n".join([prompts[f] for f in selected_features if f in prompts])
+    return base + "\nTASK:\n" + task
 
 # ---------------- GENERATE ----------------
 if st.button("Generate Coaching Advice"):
-
     if not selected_features:
         st.warning("Select at least one feature")
     else:
-        prompt = build_prompt()
+        prompt = build_prompt(selected_features)
 
         with st.spinner("Generating coaching plan..."):
             try:
                 response = model.generate_content(prompt)
                 output = response.text
-
             except Exception as e:
                 if "429" in str(e):
                     st.warning("Quota reached. Waiting 25s...")
@@ -253,7 +208,7 @@ if st.button("Generate Coaching Advice"):
                     response = model.generate_content(prompt)
                     output = response.text
                 else:
-                    st.error(e)
+                    st.error(f"An error occurred: {e}")
                     st.stop()
 
         st.success("Coaching Plan Generated")
@@ -268,9 +223,9 @@ if st.button("Generate Coaching Advice"):
 
         # Weekly Plan
         if "Weekly Training Plan" in selected_features:
-            days = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]
-            focus = ["Strength","Cardio","Skills","Speed","Mobility","Technique","Agility"]
-            focus = focus[:training_days] + ["Rest"]*(7-training_days)
+            days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+            focus = ["Strength", "Cardio", "Skills", "Speed", "Mobility", "Technique", "Agility"]
+            focus = focus[:training_days] + ["Rest"] * (7 - training_days)
             schedule = pd.DataFrame({"Day": days, "Focus": focus})
             st.subheader("📅 Weekly Training Schedule")
             st.table(schedule)
@@ -278,8 +233,8 @@ if st.button("Generate Coaching Advice"):
         # Progress Graph
         if "Progress Predictor" in selected_features:
             st.subheader("📈 Performance Prediction")
-            weeks = [1,2,3,4]
-            performance = [50,65,75,88]
+            weeks = [1, 2, 3, 4]
+            performance = [50, 65, 75, 88]
             plt.figure()
             plt.plot(weeks, performance, marker="o")
             plt.xlabel("Week")
@@ -290,8 +245,8 @@ if st.button("Generate Coaching Advice"):
         # Nutrition
         if "Nutrition Plan" in selected_features:
             nutrition = pd.DataFrame({
-                "Meal":["Breakfast","Lunch","Dinner","Snacks"],
-                "Focus":["Carbs + Protein","Balanced","Protein Rich","Fruits + Nuts"]
+                "Meal": ["Breakfast", "Lunch", "Dinner", "Snacks"],
+                "Focus": ["Carbs + Protein", "Balanced", "Protein Rich", "Fruits + Nuts"]
             })
             st.subheader("🥗 Nutrition Guide")
             st.dataframe(nutrition)
