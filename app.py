@@ -228,7 +228,7 @@ Create a 2-week peak performance tournament preparation plan.
         "Hydration Optimizer": """
 Optimize hydration based on workload and climate.
 """
-    }
+}
 
     return base + "\nTASK:\n" + prompts[feature]
 
