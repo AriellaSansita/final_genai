@@ -44,13 +44,12 @@ injury = st.text_input("Injury History (None if no injury)")
 goal = st.selectbox("Primary Goal", ["Stamina","Strength","Speed","Recovery","Skill Improvement"])
 diet = st.selectbox("Diet Type", ["Vegetarian","Non-Vegetarian","Vegan"])
 intensity = st.selectbox("Training Intensity", ["Low","Moderate","High"])
-age = st.slider("Age", 10, 50, 15)
+weakness = st.text_input("Biggest Weakness (optional)")
+age = st.slider("Age", 10, 50, 18)
 training_days = st.slider("Training Days / Week", 1, 7, 4)
-session_duration = st.slider("Session Duration (minutes)", 20, 180, 60)
+session_duration = st.slider("Session Duration (minutes)", 30, 180, 90)
 
-# ---------------- FEATURES ----------------
-st.sidebar.header("Select Coaching Features")
-
+# ---------------- FEATURE DROPDOWN ----------------
 all_features = [
     "Full Workout Plan",
     "Injury Recovery Plan",
@@ -58,74 +57,64 @@ all_features = [
     "Stamina Builder",
     "Nutrition Plan",
     "Hydration Strategy",
-    "Warm-up & Cooldown"
+    "Warm-up & Cooldown",
+    "Tactical Coaching",
+    "Mental Focus Training",
+    "Skill Drills",
+    "Progress Predictor",
+    "Weakness Analyzer",
+    "Match Strategy",
+    "Pre-Match Routine",
+    "Post-Match Recovery",
+    "Motivation Coach",
+    "Injury Risk Predictor",
+    "Mobility & Stretching",
+    "Tournament Preparation"
 ]
 
-selected_features = [f for f in all_features if st.sidebar.checkbox(f, True)]
+selected_feature = st.selectbox("Choose Coaching Feature", all_features)
 
 # ---------------- WORKOUT TABLE ----------------
 def generate_workout_table():
 
     exercises = [
-        {"name": "Push-ups", "type": "strength", "uses_arm": True},
-        {"name": "Squats", "type": "strength", "uses_arm": False},
-        {"name": "Lunges", "type": "strength", "uses_arm": False},
-        {"name": "Glute Bridges", "type": "strength", "uses_arm": False},
-        {"name": "Calf Raises", "type": "strength", "uses_arm": False},
-        {"name": "Cycling / Brisk Walk", "type": "cardio", "uses_arm": False},
+        {"name": "Squats", "type": "strength"},
+        {"name": "Lunges", "type": "strength"},
+        {"name": "Glute Bridges", "type": "strength"},
+        {"name": "Calf Raises", "type": "strength"},
+        {"name": "Cycling / Brisk Walk", "type": "cardio"}
     ]
-
-    inj = injury.lower()
-
-    # Remove arm exercises if arm injury
-    if any(x in inj for x in ["arm","wrist","elbow","shoulder","fracture","broken"]):
-        exercises = [e for e in exercises if not e["uses_arm"]]
-
-    if not exercises:
-        return pd.DataFrame({"Exercise":["Rest / Recovery"],"Sets":["-"],"Reps / Time":["-"]})
-
-    strength_ex = [e for e in exercises if e["type"] == "strength"]
-    cardio_ex = [e for e in exercises if e["type"] == "cardio"]
 
     warmup = 10
     cooldown = 10
-    usable = max(10, session_duration - warmup - cooldown)
+    usable = session_duration - warmup - cooldown
 
-    cardio_block = min(40, int(usable * 0.55))
+    cardio_block = int(usable * 0.5)
     strength_block = usable - cardio_block
 
     rows = []
 
-    if strength_ex:
-        time_per_strength = max(5, strength_block // len(strength_ex))
+    time_per_strength = max(6, strength_block // 4)
 
-        if intensity == "Low":
-            sets, reps = 1, "12-15"
-        elif intensity == "Moderate":
-            sets, reps = 2, "12-15"
-        else:
-            sets, reps = 3, "15-20"
-
-        for ex in strength_ex:
-            rows.append({
-                "Exercise": ex["name"],
-                "Sets": sets,
-                "Reps / Time": f"{reps} reps (~{time_per_strength} min)"
-            })
-
-    if cardio_ex:
+    for ex in exercises[:-1]:
         rows.append({
-            "Exercise": cardio_ex[0]["name"],
-            "Sets": "-",
-            "Reps / Time": f"{cardio_block} min steady pace"
+            "Exercise": ex["name"],
+            "Sets": 2 if intensity != "Low" else 1,
+            "Reps / Time": f"12-15 reps (~{time_per_strength} min)"
         })
+
+    rows.append({
+        "Exercise": exercises[-1]["name"],
+        "Sets": "-",
+        "Reps / Time": f"{cardio_block} min steady pace"
+    })
 
     return pd.DataFrame(rows)
 
-# ---------------- PROMPT ----------------
+# ---------------- AI PROMPT ----------------
 def build_prompt():
 
-    feature_text = ", ".join(selected_features)
+    feature_text = selected_feature
 
     return f"""
 You are a professional youth sports coach AI.
@@ -137,53 +126,61 @@ Age: {age}
 Goal: {goal}
 Injury: {injury}
 Intensity: {intensity}
+Weakness: {weakness}
 Diet: {diet}
 Training Days: {training_days}
 Session Duration: {session_duration}
 
-Focus ONLY on: {feature_text}
+Include ONLY selected modules: {feature_text}
 
 Rules:
-- Max 180 words
+- Max 220 words
 - Bullet points
-- Practical, short, structured
-- No motivational talk
+- Practical, structured, realistic
+- No motivation fluff
 
-Sections:
-1. Recovery (only if injury exists)
-2. Workout Focus
-3. Weekly Advice
-4. Diet / Hydration
+Sections (only if relevant):
+Recovery
+Workout Focus
+Weekly Advice
+Skill Drills
+Tactical Coaching
+Mental Focus
+Progress Prediction
+Weakness Fix
+Match Strategy
+Pre-Match
+Post-Match
+Injury Risk
+Mobility
+Tournament Prep
+Diet & Hydration
 """
 
-# ---------------- AI SAFE CALL ----------------
 def get_ai_text(prompt):
     try:
         response = model.generate_content(prompt)
         if not response or not response.candidates:
-            return "⚠️ AI returned no response."
-
-        parts = response.candidates[0].content.parts
-        return "".join([p.text for p in parts if hasattr(p, "text")]).strip()
-
+            return "⚠️ No AI output."
+        return response.candidates[0].content.parts[0].text
     except Exception as e:
         return f"Error: {e}"
 
 # ---------------- NUTRITION ----------------
 def generate_nutrition():
 
-    carb = ["Oats","Brown Rice","Quinoa","Sweet Potato","Whole Wheat"]
+    carbs = ["Oats","Brown Rice","Quinoa","Sweet Potato","Whole Wheat"]
     protein_veg = ["Lentils","Chickpeas","Tofu","Tempeh","Beans"]
-    protein_nonveg = ["Eggs","Chicken","Fish","Yogurt","Paneer"]
-    fats = ["Nuts","Seeds","Peanut Butter","Olive Oil","Avocado"]
+    protein_nonveg = ["Eggs","Chicken","Fish","Paneer"]
+    fats = ["Nuts","Seeds","Olive Oil","Peanut Butter"]
 
     protein = protein_veg if diet != "Non-Vegetarian" else protein_nonveg
 
     return pd.DataFrame({
         "Meal":["Breakfast","Lunch","Dinner","Snacks"],
-        "Focus":[
-            f"{random.choice(carb)} + {random.choice(protein)}",
-            f"Balanced: {random.choice(carb)}, {random.choice(protein)}, Veggies",
+        "Plan":[
+            f"{random.choice(carbs)} + {random.choice(protein)}",
+            f"Balanced: {random.choice(carbs)}, {random.choice(protein)}, Veggies",
             f"Recovery: {random.choice(protein)} + Veggies",
             f"{random.choice(fats)} + Fruit"
         ]
@@ -192,51 +189,34 @@ def generate_nutrition():
 # ---------------- GENERATE ----------------
 if st.button("Generate Coaching Advice"):
 
-    if not selected_features:
-        st.warning("Select at least one feature.")
-        st.stop()
-
-    with st.spinner("Generating..."):
+    with st.spinner("AI Coach thinking..."):
         output = get_ai_text(build_prompt())
 
     st.subheader("📋 AI Coaching Output")
     st.write(output)
 
-    if any(f in selected_features for f in ["Full Workout Plan","Stamina Builder"]):
+    if selected_feature == "Full Workout Plan":
         st.subheader("🏋️ Workout Plan")
-        st.dataframe(generate_workout_table(), use_container_width=True)
+        st.dataframe(generate_workout_table())
 
-    if "Weekly Training Plan" in selected_features:
-        st.subheader("📅 Weekly Training Schedule")
+    if selected_feature == "Weekly Training Plan":
+        st.subheader("📅 Weekly Schedule")
 
         days = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]
-        inj = injury.lower()
 
-        if any(x in inj for x in ["arm","broken","fracture"]):
-            focus_pool = [
-                "Stamina + Cardio",
-                "Lower Body + Core",
-                "Stamina + Cardio",
-                "Active Recovery",
-                "Mobility + Core",
-                "Cardio",
-                "Recovery"
-            ]
-        else:
-            focus_pool = [
-                "Stamina + Cardio",
-                "Full Body Strength",
-                "Cardio Intervals",
-                "Mobility",
-                "Speed & Agility",
-                "Technique",
-                "Recovery"
-            ]
+        focus_pool = [
+            "Stamina + Cardio",
+            "Strength",
+            "Skill + Tactical",
+            "Mobility",
+            "Speed",
+            "Technique",
+            "Recovery"
+        ]
 
         schedule = [focus_pool[i] if i < training_days else "Rest" for i in range(7)]
         st.table(pd.DataFrame({"Day": days, "Focus": schedule}).set_index("Day"))
 
-    if "Nutrition Plan" in selected_features:
+    if selected_feature == "Nutrition Plan":
         st.subheader("🥗 Nutrition Guide")
-        st.dataframe(generate_nutrition(), use_container_width=True)
-
+        st.dataframe(generate_nutrition())
