@@ -64,69 +64,6 @@ features = [
 
 selected_feature = st.selectbox("Choose Coaching Feature", features)
 
-# ---------------- WORKOUT TABLE ----------------
-def generate_workout_table():
-    # ---------------- Exercise Pools ----------------
-    strength_general = {
-        "Lower Body": ["Squats","Lunges","Glute Bridges","Calf Raises","Step-ups","Wall Sit"],
-        "Upper Body": ["Push-ups","Inverted Rows","Shoulder Taps","Tricep Dips","Wall Slides"],
-        "Core": ["Plank Variations","Leg Raises","Dead Bug","Bird-Dog","Slow Russian Twists"],
-        "Functional": ["Single-leg balance","Light lateral bounds","Low box step-ups","Rotational Twists","Hip Mobility Drill"]
-    }
-
-    cardio_options = ["Brisk Walk","Light Jog","Cycling","Swimming","Elliptical","Rowing","Stationary Bike"]
-
-    # ---------------- Role Adaptation ----------------
-    role_words = position.lower().split()
-    # Generic role-based modifiers (adds variety without hardcoding)
-    extra_strength = ["Plank Variations","Push-ups","Step-ups","Rotational Twists"]
-    
-    # Flatten all pools and add extra
-    strength_pool = []
-    for key in strength_general:
-        strength_pool += strength_general[key]
-    strength_pool += extra_strength
-
-    # Remove high-impact exercises if injury exists
-    if injury and injury.lower() != "none":
-        strength_pool = [ex for ex in strength_pool if "Jump" not in ex and "Lunge" not in ex and "Step-ups" not in ex]
-
-    # ---------------- Time Allocation ----------------
-    warmup = 10
-    cooldown = 10
-    usable_time = max(session_duration - warmup - cooldown, 0)
-    cardio_time = usable_time // 2
-    strength_time = usable_time - cardio_time
-
-    # ---------------- Sets/Reps by Intensity ----------------
-    sets_map = {"Low":2,"Moderate":3,"High":4}
-    reps_map = {"Low":"15-20","Moderate":"12-15","High":"8-12"}
-    sets = sets_map.get(intensity, 2)
-    reps = reps_map.get(intensity, "10-15")
-
-    # ---------------- Pick Strength Exercises ----------------
-    num_strength_exercises = min(6, len(strength_pool))
-    strength_exercises = random.sample(strength_pool, num_strength_exercises)
-    time_per_strength = round(strength_time / len(strength_exercises), 1) if strength_exercises else 0
-
-    # ---------------- Build Table ----------------
-    rows = []
-    for ex in strength_exercises:
-        rows.append({
-            "Exercise": ex,
-            "Sets": sets,
-            "Reps / Time": f"{reps} reps (~{time_per_strength} min)"
-        })
-
-    # ---------------- Pick Cardio Exercise ----------------
-    cardio_exercise = random.choice(cardio_options)
-    rows.append({
-        "Exercise": cardio_exercise,
-        "Sets": "-",
-        "Reps / Time": f"{cardio_time} min steady pace"
-    })
-
-    return pd.DataFrame(rows)
 # ---------------- NUTRITION ----------------
 def generate_nutrition():
 
@@ -214,10 +151,6 @@ if st.button("Generate Coaching Advice"):
 
     st.subheader("📋 AI Coaching Output")
     st.write(output)
-
-    if selected_feature == "Full Workout Plan":
-        st.subheader("🏋️ Workout Plan")
-        st.dataframe(generate_workout_table())
 
     if selected_feature == "Weekly Training Plan":
         st.subheader("📅 Weekly Schedule")
