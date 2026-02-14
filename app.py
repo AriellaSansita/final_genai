@@ -70,47 +70,63 @@ def generate_workout_table():
     exercises = [
         {"name": "Push-ups", "type": "strength", "uses_arm": True},
         {"name": "Squats", "type": "strength", "uses_arm": False},
-        {"name": "Plank", "type": "core", "uses_arm": True},
         {"name": "Lunges", "type": "strength", "uses_arm": False},
-        {"name": "Cycling / Brisk Walk", "type": "cardio", "uses_arm": False},
         {"name": "Glute Bridges", "type": "strength", "uses_arm": False},
-        {"name": "Calf Raises", "type": "strength", "uses_arm": False}
+        {"name": "Calf Raises", "type": "strength", "uses_arm": False},
+        {"name": "Cycling / Brisk Walk", "type": "cardio", "uses_arm": False},
     ]
 
     inj = injury.lower()
+
+    # Remove arm exercises if arm injury
     if any(x in inj for x in ["arm","wrist","elbow","shoulder","fracture","broken"]):
         exercises = [e for e in exercises if not e["uses_arm"]]
 
+    if not exercises:
+        return pd.DataFrame({"Exercise":["Rest / Recovery"],"Sets":["-"],"Reps / Time":["-"]})
+
+    strength_ex = [e for e in exercises if e["type"] == "strength"]
+    cardio_ex = [e for e in exercises if e["type"] == "cardio"]
+
+    # ---- TIME LOGIC ----
+    warmup_time = 10
+    cooldown_time = 10
+    usable_time = max(10, session_duration - warmup_time - cooldown_time)
+
+    # Strength block gets ~35% of usable time
+    strength_block = int(usable_time * 0.35)
+    cardio_block = usable_time - strength_block
+
     rows = []
-    non_cardio = [e for e in exercises if e["type"] != "cardio"]
-    cardio = [e for e in exercises if e["type"] == "cardio"]
 
-    # realistic time split
-    strength_block = min(20, session_duration * 0.35)
-    cardio_block = session_duration - strength_block
+    # ---- STRENGTH DISTRIBUTION ----
+    if strength_ex:
+        time_per_strength = max(3, strength_block // len(strength_ex))
 
-    for ex in non_cardio:
         if intensity == "Low":
-            sets, reps = 1, "10-12"
+            sets, reps = 1, "12-15"
         elif intensity == "Moderate":
             sets, reps = 2, "12-15"
         else:
             sets, reps = 3, "15-20"
 
-        rows.append({
-            "Exercise": ex["name"],
-            "Sets": sets,
-            "Reps / Time": f"{reps} reps"
-        })
+        for ex in strength_ex:
+            rows.append({
+                "Exercise": ex["name"],
+                "Sets": sets,
+                "Reps / Time": f"{reps} reps (~{time_per_strength} min)"
+            })
 
-    for ex in cardio:
+    # ---- CARDIO ----
+    if cardio_ex:
         rows.append({
-            "Exercise": ex["name"],
+            "Exercise": cardio_ex[0]["name"],
             "Sets": "-",
-            "Reps / Time": f"{int(cardio_block)} min steady pace"
+            "Reps / Time": f"{cardio_block} min steady pace"
         })
 
     return pd.DataFrame(rows)
+
 
 # ---------------- PROMPT ----------------
 def build_prompt():
