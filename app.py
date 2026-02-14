@@ -236,9 +236,8 @@ if "last_output" not in st.session_state:
 if st.button("Generate Coaching Advice"):
     with st.spinner("AI Coach thinking..."):
         st.session_state.last_output = get_ai_text(build_prompt())
-
-st.subheader("📋 AI Coaching Output")
-st.write(st.session_state.last_output)
+        st.subheader("📋 AI Coaching Output")
+        st.write(st.session_state.last_output)
 
     if selected_feature == "Full Workout Plan":
         st.subheader("🏋️ Workout Plan")
