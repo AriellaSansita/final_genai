@@ -109,6 +109,9 @@ General Rules:
 - Bullet points
 - Practical and structured
 - No motivation fluff
+
+Act as a certified youth strength and conditioning coach.
+Prioritize safety and injury prevention in all recommendations.
 """
 
     if selected_feature in ["Full Workout Plan","Weekly Training Plan","Stamina Builder"]:
