@@ -258,7 +258,7 @@ if st.button("Generate Coaching Advice"):
         schedule = [focus_pool[i] if i < training_days else "Rest" for i in range(7)]
         st.table(pd.DataFrame({"Day": days, "Focus": schedule}).set_index("Day"))
 
-    if selected_feature == "Nutrition Plan":
+   if selected_feature == "Nutrition Plan":
     st.subheader("🥗 Nutrition Guide")
     try:
         nutrition_df = generate_nutrition()
