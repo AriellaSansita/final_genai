@@ -101,7 +101,7 @@ def generate_workout_table():
 
     # -------- STRENGTH --------
     if strength_ex:
-        time_per_strength = max(strength_block // len(strength_ex))
+        time_per_strength = max(5, strength_block // len(strength_ex))
 
         if intensity == "Low":
             sets, reps = 1, "12-15"
