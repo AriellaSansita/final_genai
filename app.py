@@ -134,11 +134,13 @@ Rules:
 
 Workout Rules:
 - Total session MUST equal {session_duration} minutes
-- Warmup 10 min
-- Cardio 35-40 min MAX
-- Strength remaining time
-- Cooldown 10 min
-- Always show time split
+- Warmup: 10 min
+- Cooldown: 10 min
+- Remaining time split EVENLY between Cardio and Strength
+- Cardio ≈ Strength (50/50 split)
+- Never exceed total time
+- If arm injury → NO planks, NO pushups, NO arm load, NO jumps
+- Every day MUST show exact time split matching above
 """
 
 # ---------------- AI CALL ----------------
