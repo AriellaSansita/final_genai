@@ -235,28 +235,33 @@ if st.button("Generate Coaching Advice"):
             inj = injury.lower()
         
             # Injury-aware focus selection
-        inj = injury.lower()
+            if "arm" in inj or "broken" in inj or "fracture" in inj:
+                focus_pool = [
+                    "Stamina + Cardio",
+                    "Lower Body + Core",
+                    "Stamina + Cardio",
+                    "Active Recovery",
+                    "Mobility + Core",
+                    "Cardio",
+                    "Recovery"
+                ]
+            else:
+                focus_pool = [
+                    "Stamina + Cardio",
+                    "Full Body Strength",
+                    "Cardio Intervals",
+                    "Mobility",
+                    "Speed & Agility",
+                    "Technique",
+                    "Recovery"
+                ]
 
-        if "arm" in inj or "broken" in inj or "fracture" in inj:
-            focus_pool = [
-                "Stamina + Cardio",
-                "Lower Body + Core",
-                "Stamina + Cardio",
-                "Active Recovery",
-                "Mobility + Core",
-                "Cardio",
-                "Recovery"
-            ]
-        else:
-            focus_pool = [
-                "Stamina + Cardio",
-                "Full Body Strength",
-                "Cardio Intervals",
-                "Mobility",
-                "Speed & Agility",
-                "Technique",
-                "Recovery"
-            ]
+    # Generate schedule
+    schedule = [focus_pool[i] if i < training_days else "Rest" for i in range(7)]
+
+    # Clean table
+    st.table(pd.DataFrame({"Day": days, "Focus": schedule}).set_index("Day"))
+
 
             # Generate schedule
             schedule = [focus_pool[i] if i < training_days else "Rest" for i in range(7)]
