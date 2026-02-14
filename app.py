@@ -88,15 +88,21 @@ def generate_workout_table():
     # Even distribution across strength exercises
     time_per_strength = strength_block / len(strength_exercises)
 
-    sets = 1 if intensity == "Low" else 2 if intensity == "Moderate" else 3
-
+    # Decide sets based on intensity
+    if intensity == "Low":
+        sets = 2
+    elif intensity == "Moderate":
+        sets = 3
+    else:
+        sets = 4
+    
     for ex in strength_exercises:
         rows.append({
             "Exercise": ex["name"],
             "Sets": sets,
-            "Reps / Time": f"12-15 reps (~{round(time_per_strength)} min)"
+            "Reps / Time": f"12-15 reps (~{time_per_strength} min)"
         })
-
+    
     rows.append({
         "Exercise": cardio_exercise["name"],
         "Sets": "-",
