@@ -3,10 +3,6 @@ import google.generativeai as genai
 import pandas as pd
 import random
 
-# ---------------- SESSION STATE DEFAULTS ----------------
-if "reset_trigger" not in st.session_state:
-    st.session_state.reset_trigger = False
-
 # ---------------- CONFIG ----------------
 genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
 model = genai.GenerativeModel("gemini-2.5-flash")
@@ -162,11 +158,3 @@ if st.button("Generate Coaching Advice"):
     if selected_feature == "Nutrition Plan":
         st.subheader("🥗 Nutrition Guide")
         st.dataframe(generate_nutrition())
-
-# ---------------- RESET BUTTON ----------------
-if st.button("Reset"):
-    # Clear session state to reset inputs (widgets will reset on rerun)
-    for key in list(st.session_state.keys()):
-        if key != "reset_trigger":  # Keep reset_trigger if needed, but actually clear all
-            del st.session_state[key]
-    st.rerun()  # Use st.rerun() instead of deprecated st.experimental_rerun()
