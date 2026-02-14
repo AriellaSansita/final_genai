@@ -48,7 +48,7 @@ age = st.slider("Age", 10, 50, 18)
 training_days = st.slider("Training Days / Week", 1, 7, 4)
 session_duration = st.slider("Session Duration (minutes)", 30, 180, 90)
 
-# ---------------- FEATURE DROPDOWN ----------------
+# ---------------- FEATURES ----------------
 features = [
     "Full Workout Plan","Injury Recovery Plan","Weekly Training Plan",
     "Stamina Builder","Nutrition Plan","Hydration Strategy",
@@ -63,59 +63,71 @@ selected_feature = st.selectbox("Choose Coaching Feature", features)
 # ---------------- WORKOUT TABLE ----------------
 def generate_workout_table():
 
-    exercises = [
-        {"name": "Squats", "type": "strength"},
-        {"name": "Lunges", "type": "strength"},
-        {"name": "Glute Bridges", "type": "strength"},
-        {"name": "Calf Raises", "type": "strength"},
-        {"name": "Cycling / Brisk Walk", "type": "cardio"}
+    strength_pool = [
+        "Squats","Lunges","Glute Bridges","Calf Raises",
+        "Step-ups","Wall Sit","Reverse Crunch",
+        "Dead Bug (legs only)","Leg Raises","Hollow Hold"
     ]
 
-    # ---- FIXED STRUCTURE ----
+    cardio_options = [
+        "Cycling","Brisk Walk","Treadmill Walk",
+        "Elliptical (legs only)","Stationary Bike"
+    ]
+
+    strength_exercises = random.sample(strength_pool, 5)
+    cardio_exercise = random.choice(cardio_options)
+
     warmup = 10
     cooldown = 10
-    usable = session_duration - warmup - cooldown
+    usable = max(session_duration - warmup - cooldown, 0)
 
-    # Split remaining time evenly
     cardio_block = usable // 2
-    strength_block = usable - cardio_block   # ensures perfect total
+    strength_block = usable - cardio_block
+    time_per_strength = round(strength_block / 5, 1) if strength_block else 0
+
+    sets = {"Low":2,"Moderate":3,"High":4}[intensity]
 
     rows = []
 
-    strength_exercises = exercises[:-1]
-    cardio_exercise = exercises[-1]
-
-    # Even distribution across strength exercises
-    time_per_strength = strength_block / len(strength_exercises)
-
-    # Decide sets based on intensity
-    if intensity == "Low":
-        sets = 2
-    elif intensity == "Moderate":
-        sets = 3
-    else:
-        sets = 4
-    
     for ex in strength_exercises:
         rows.append({
-            "Exercise": ex["name"],
+            "Exercise": ex,
             "Sets": sets,
-            "Reps / Time": f"12-15 reps (~{time_per_strength} min)"
+            "Reps / Time": f"10-15 reps (~{time_per_strength} min)"
         })
-    
+
     rows.append({
-        "Exercise": cardio_exercise["name"],
+        "Exercise": cardio_exercise,
         "Sets": "-",
         "Reps / Time": f"{cardio_block} min steady pace"
     })
 
     return pd.DataFrame(rows)
 
+# ---------------- NUTRITION ----------------
+def generate_nutrition():
+
+    carbs = ["Oats","Brown Rice","Quinoa","Sweet Potato","Whole Wheat"]
+    protein_veg = ["Lentils","Chickpeas","Tofu","Tempeh","Beans","Paneer"]
+    protein_nonveg = ["Eggs","Chicken","Fish"]
+    fats = ["Nuts","Seeds","Olive Oil","Peanut Butter"]
+
+    protein = protein_nonveg if diet == "Non-Vegetarian" else protein_veg
+
+    return pd.DataFrame({
+        "Meal": ["Breakfast","Lunch","Dinner","Snacks"],
+        "Plan": [
+            f"{random.choice(carbs)} + {random.choice(protein)}",
+            f"Balanced: {random.choice(carbs)}, {random.choice(protein)}, Vegetables",
+            f"Recovery: {random.choice(protein)} + Vegetables",
+            f"{random.choice(fats)} + Fruit"
+        ]
+    })
 
 # ---------------- AI PROMPT ----------------
 def build_prompt():
 
-    return f"""
+    prompt = f"""
 You are a professional youth sports coach AI.
 
 Athlete:
@@ -131,141 +143,54 @@ Session Duration: {session_duration}
 
 Include ONLY module: {selected_feature}
 
-Rules:
+General Rules:
 - Max 220 words
 - Bullet points
-- Practical, structured, realistic
+- Practical and structured
 - No motivation fluff
-- If arm injury: NO planks, NO pushups, NO jumps, NO arm loading
+"""
+
+    if selected_feature in ["Full Workout Plan","Weekly Training Plan","Stamina Builder"]:
+        prompt += f"""
 
 Workout Rules:
 - Total session MUST equal {session_duration} minutes
 - Warmup: 10 min
 - Cooldown: 10 min
-- Remaining time split EVENLY between Cardio and Strength
-- Cardio ≈ Strength (50/50 split)
+- Remaining time split 50/50 between Cardio and Strength
 - Never exceed total time
-- - If arm injury → STRICT BAN: no planks, no side planks, no bird-dog, no pushups, no arm-supported core, no arm loading, no crawling, no jumping
-- If any banned exercise appears → replace with legs-only core (dead bug legs, reverse crunch, hollow hold, leg raises)
-- Every day MUST show exact time split matching above
 """
+
+    if selected_feature == "Pre-Match Routine":
+        prompt += """
+
+Pre-Match Rules:
+- Single session only (NOT 6 days)
+- 20–40 minutes total
+- Focus on activation, reaction, sharpness
+- No heavy strength blocks
+"""
+
+    return prompt
 
 # ---------------- AI CALL ----------------
 def get_ai_text(prompt):
     try:
         r = model.generate_content(prompt)
-        if not r or not r.candidates:
-            return "⚠️ No AI output"
-        return r.candidates[0].content.parts[0].text
-
+        return r.candidates[0].content.parts[0].text if r and r.candidates else "⚠️ No AI output"
     except Exception as e:
-        if "quota" in str(e).lower() or "429" in str(e):
-            return "⚠️ API quota exceeded. Wait a bit and try again."
+        if "quota" in str(e).lower():
+            return "⚠️ API quota exceeded. Try again later."
         return f"Error: {e}"
-
-# ---------------- NUTRITION ----------------
-def generate_workout_table():
-
-    # ----- Strength pool (5 exercises like AI output) -----
-    strength_pool = [
-        "Squats",
-        "Lunges",
-        "Glute Bridges",
-        "Calf Raises",
-        "Step-ups",
-        "Wall Sit",
-        "Romanian Deadlift (Bodyweight)",
-        "Reverse Crunch",
-        "Dead Bug (legs only)",
-        "Leg Raises",
-        "Hollow Hold"
-    ]
-
-    cardio_options = [
-        "Cycling",
-        "Brisk Walk",
-        "Treadmill Walk",
-        "Elliptical (legs only)",
-        "Stationary Bike"
-    ]
-
-    # Pick EXACTLY 5 strength exercises (to match AI plan)
-    strength_exercises = random.sample(strength_pool, 5)
-    cardio_exercise = random.choice(cardio_options)
-
-    # ----- Time Structure -----
-    warmup = 10
-    cooldown = 10
-    usable = session_duration - warmup - cooldown
-
-    # Perfect 50/50 split
-    cardio_block = usable // 2
-    strength_block = usable - cardio_block
-
-    # Even distribution across 5 exercises
-    time_per_strength = round(strength_block / 5, 1)
-
-    # ----- Sets by Intensity -----
-    if intensity == "Low":
-        sets = 2
-    elif intensity == "Moderate":
-        sets = 3
-    else:
-        sets = 4
-
-    rows = []
-
-    # ----- Strength Rows -----
-    for ex in strength_exercises:
-        rows.append({
-            "Exercise": ex,
-            "Sets": sets,
-            "Reps / Time": f"10-15 reps (~{time_per_strength} min)"
-        })
-
-    # ----- Cardio Row -----
-    rows.append({
-        "Exercise": cardio_exercise,
-        "Sets": "-",
-        "Reps / Time": f"{cardio_block} min steady pace"
-    })
-
-    return pd.DataFrame(rows)
-
-if "last_output" not in st.session_state:
-    st.session_state.last_output = ""
-
-# ---------------- NUTRITION ----------------
-def generate_nutrition():
-
-    carbs = ["Oats","Brown Rice","Quinoa","Sweet Potato","Whole Wheat"]
-    protein_veg = ["Lentils","Chickpeas","Tofu","Tempeh","Beans","Paneer"]
-    protein_nonveg = ["Eggs","Chicken","Fish"]
-    fats = ["Nuts","Seeds","Olive Oil","Peanut Butter"]
-
-    if diet == "Non-Vegetarian":
-        protein = protein_nonveg
-    else:
-        protein = protein_veg
-
-    return pd.DataFrame({
-        "Meal": ["Breakfast","Lunch","Dinner","Snacks"],
-        "Plan": [
-            f"{random.choice(carbs)} + {random.choice(protein)}",
-            f"Balanced: {random.choice(carbs)}, {random.choice(protein)}, Vegetables",
-            f"Recovery: {random.choice(protein)} + Vegetables",
-            f"{random.choice(fats)} + Fruit"
-        ]
-    })
 
 # ---------------- GENERATE ----------------
 if st.button("Generate Coaching Advice"):
 
     with st.spinner("AI Coach thinking..."):
-        st.session_state.last_output = get_ai_text(build_prompt())
+        output = get_ai_text(build_prompt())
 
     st.subheader("📋 AI Coaching Output")
-    st.write(st.session_state.last_output)
+    st.write(output)
 
     if selected_feature == "Full Workout Plan":
         st.subheader("🏋️ Workout Plan")
@@ -273,20 +198,11 @@ if st.button("Generate Coaching Advice"):
 
     if selected_feature == "Weekly Training Plan":
         st.subheader("📅 Weekly Schedule")
-
         days = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]
-        focus_pool = [
-            "Stamina + Cardio","Strength","Skill + Tactical",
-            "Mobility","Speed","Technique","Recovery"
-        ]
-
+        focus_pool = ["Stamina","Strength","Skill","Mobility","Speed","Recovery","Tactical"]
         schedule = [focus_pool[i] if i < training_days else "Rest" for i in range(7)]
         st.table(pd.DataFrame({"Day": days, "Focus": schedule}).set_index("Day"))
 
     if selected_feature == "Nutrition Plan":
         st.subheader("🥗 Nutrition Guide")
-        try:
-            nutrition_df = generate_nutrition()
-            st.dataframe(nutrition_df)
-        except Exception as e:
-            st.error(f"Nutrition module failed: {e}")
+        st.dataframe(generate_nutrition())
