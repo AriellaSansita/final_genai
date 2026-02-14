@@ -63,34 +63,48 @@ selected_feature = st.selectbox("Choose Coaching Feature", features)
 # ---------------- WORKOUT TABLE ----------------
 def generate_workout_table():
 
+    exercises = [
+        {"name": "Squats", "type": "strength"},
+        {"name": "Lunges", "type": "strength"},
+        {"name": "Glute Bridges", "type": "strength"},
+        {"name": "Calf Raises", "type": "strength"},
+        {"name": "Cycling / Brisk Walk", "type": "cardio"}
+    ]
+
+    # ---- FIXED STRUCTURE ----
     warmup = 10
     cooldown = 10
     usable = session_duration - warmup - cooldown
 
-    cardio_block = min(38, max(30, int(usable * 0.5)))
-    strength_block = usable - cardio_block
+    # Split remaining time evenly
+    cardio_block = usable // 2
+    strength_block = usable - cardio_block   # ensures perfect total
 
-    exercises = ["Squats","Lunges","Glute Bridges","Calf Raises"]
     rows = []
 
-    time_per_strength = max(6, strength_block // len(exercises))
+    strength_exercises = exercises[:-1]
+    cardio_exercise = exercises[-1]
+
+    # Even distribution across strength exercises
+    time_per_strength = strength_block / len(strength_exercises)
 
     sets = 1 if intensity == "Low" else 2 if intensity == "Moderate" else 3
 
-    for ex in exercises:
+    for ex in strength_exercises:
         rows.append({
-            "Exercise": ex,
+            "Exercise": ex["name"],
             "Sets": sets,
-            "Reps / Time": f"12-15 reps (~{time_per_strength} min)"
+            "Reps / Time": f"12-15 reps (~{round(time_per_strength)} min)"
         })
 
     rows.append({
-        "Exercise": "Cycling / Brisk Walk",
+        "Exercise": cardio_exercise["name"],
         "Sets": "-",
         "Reps / Time": f"{cardio_block} min steady pace"
     })
 
     return pd.DataFrame(rows)
+
 
 # ---------------- AI PROMPT ----------------
 def build_prompt():
