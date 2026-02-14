@@ -3,6 +3,10 @@ import google.generativeai as genai
 import pandas as pd
 import random
 
+# ---------------- SESSION STATE DEFAULTS ----------------
+if "reset_trigger" not in st.session_state:
+    st.session_state.reset_trigger = False
+
 # ---------------- CONFIG ----------------
 genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
 model = genai.GenerativeModel("gemini-2.5-flash")
@@ -16,6 +20,8 @@ sports_list = [
     "Football","Cricket","Basketball","Athletics","Badminton","Tennis",
     "Hockey","Volleyball","Kabaddi","Table Tennis","Swimming","Martial Arts","Other"
 ]
+
+sport = st.selectbox("Sport", sports_list)
 
 positions_by_sport = {
     "Football": ["Goalkeeper","Defender","Midfielder","Winger","Striker"],
@@ -32,48 +38,21 @@ positions_by_sport = {
     "Martial Arts": ["Striker","Grappler","Mixed Fighter"]
 }
 
-# ---------------- DEFAULTS ----------------
-defaults = {
-    "sport": "Football",
-    "position": "Goalkeeper",
-    "injury": "",
-    "goal": "Stamina",
-    "diet": "Vegetarian",
-    "intensity": "Low",
-    "age": 18,
-    "training_days": 4,
-    "session_duration": 90,
-    "selected_feature": "Full Workout Plan"
-}
-
-# Load defaults into session state if not set
-for key, value in defaults.items():
-    if key not in st.session_state:
-        st.session_state[key] = value
-
-# ---------------- INPUTS ----------------
-sport = st.selectbox("Sport", sports_list, index=sports_list.index(st.session_state["sport"]))
 if sport == "Other":
-    sport = st.text_input("Enter Your Sport", value=st.session_state["sport"])
-    position = st.text_input("Enter Position", value=st.session_state["position"])
+    sport = st.text_input("Enter Your Sport") or "General Sport"
+    position = st.text_input("Enter Position") or "Athlete"
 else:
-    position = st.selectbox(
-        "Player Position",
-        positions_by_sport.get(sport, ["Athlete"]),
-        index=positions_by_sport.get(sport, ["Athlete"]).index(st.session_state["position"])
-    )
+    position = st.selectbox("Player Position", positions_by_sport.get(sport, ["Athlete"]))
 
-injury = st.text_input("Injury History (None if no injury)", value=st.session_state["injury"])
-goal = st.selectbox("Primary Goal", ["Stamina","Strength","Speed","Recovery","Skill Improvement"], 
-                    index=["Stamina","Strength","Speed","Recovery","Skill Improvement"].index(st.session_state["goal"]))
-diet = st.selectbox("Diet Type", ["Vegetarian","Non-Vegetarian","Vegan"], 
-                    index=["Vegetarian","Non-Vegetarian","Vegan"].index(st.session_state["diet"]))
-intensity = st.selectbox("Training Intensity", ["Low","Moderate","High"], 
-                         index=["Low","Moderate","High"].index(st.session_state["intensity"]))
-age = st.slider("Age", 10, 50, st.session_state["age"])
-training_days = st.slider("Training Days / Week", 1, 7, st.session_state["training_days"])
-session_duration = st.slider("Session Duration (minutes)", 30, 180, st.session_state["session_duration"])
+injury = st.text_input("Injury History (None if no injury)")
+goal = st.selectbox("Primary Goal", ["Stamina","Strength","Speed","Recovery","Skill Improvement"])
+diet = st.selectbox("Diet Type", ["Vegetarian","Non-Vegetarian","Vegan"])
+intensity = st.selectbox("Training Intensity", ["Low","Moderate","High"])
+age = st.slider("Age", 10, 50, 18)
+training_days = st.slider("Training Days / Week", 1, 7, 4)
+session_duration = st.slider("Session Duration (minutes)", 30, 180, 90)
 
+# ---------------- FEATURES ----------------
 features = [
     "Full Workout Plan","Injury Recovery Plan","Weekly Training Plan",
     "Stamina Builder","Nutrition Plan","Hydration Strategy",
@@ -83,16 +62,18 @@ features = [
     "Mobility & Stretching","Tournament Preparation"
 ]
 
-selected_feature = st.selectbox("Choose Coaching Feature", features, 
-                                index=features.index(st.session_state["selected_feature"]))
+selected_feature = st.selectbox("Choose Coaching Feature", features)
 
 # ---------------- NUTRITION ----------------
 def generate_nutrition():
+
     carbs = ["Oats","Brown Rice","Quinoa","Sweet Potato","Whole Wheat"]
     protein_veg = ["Lentils","Chickpeas","Tofu","Tempeh","Beans","Paneer"]
     protein_nonveg = ["Eggs","Chicken","Fish"]
     fats = ["Nuts","Seeds","Olive Oil","Peanut Butter"]
+
     protein = protein_nonveg if diet == "Non-Vegetarian" else protein_veg
+
     return pd.DataFrame({
         "Meal": ["Breakfast","Lunch","Dinner","Snacks"],
         "Plan": [
@@ -105,6 +86,7 @@ def generate_nutrition():
 
 # ---------------- AI PROMPT ----------------
 def build_prompt():
+
     prompt = f"""
 You are a professional youth sports coach AI.
 
@@ -127,6 +109,7 @@ General Rules:
 - Practical and structured
 - No motivation fluff
 """
+
     if selected_feature in ["Full Workout Plan","Weekly Training Plan","Stamina Builder"]:
         prompt += f"""
 
@@ -137,14 +120,17 @@ Workout Rules:
 - Remaining time split 50/50 between Cardio and Strength
 - Never exceed total time
 """
+
     if selected_feature == "Pre-Match Routine":
         prompt += """
+
 Pre-Match Rules:
 - Single session only (NOT 6 days)
 - 20–40 minutes total
 - Focus on activation, reaction, sharpness
 - No heavy strength blocks
 """
+
     return prompt
 
 # ---------------- AI CALL ----------------
@@ -157,10 +143,12 @@ def get_ai_text(prompt):
             return "⚠️ API quota exceeded. Try again later."
         return f"Error: {e}"
 
-# ---------------- GENERATE OUTPUT ----------------
+# ---------------- GENERATE ----------------
 if st.button("Generate Coaching Advice"):
+
     with st.spinner("AI Coach thinking..."):
         output = get_ai_text(build_prompt())
+
     st.subheader("📋 AI Coaching Output")
     st.write(output)
 
@@ -175,9 +163,15 @@ if st.button("Generate Coaching Advice"):
         st.subheader("🥗 Nutrition Guide")
         st.dataframe(generate_nutrition())
 
-# ---------------- RESET BUTTON ----------------
 if st.button("Reset All Inputs"):
-    for key, value in defaults.items():
-        st.session_state[key] = value
-    st.experimental_rerun()
-
+        # Only reset keys that you actually control
+        keys_to_reset = [
+            "sport","position","injury","goal","diet",
+            "intensity","age","training_days","session_duration",
+            "selected_feature"
+        ]
+        for key in keys_to_reset:
+            if key in st.session_state:
+                del st.session_state[key]  # remove key to reset input
+    
+        st.experimental_rerun()  # refresh the app safely
