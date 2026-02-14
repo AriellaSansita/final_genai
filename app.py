@@ -139,7 +139,8 @@ Workout Rules:
 - Remaining time split EVENLY between Cardio and Strength
 - Cardio ≈ Strength (50/50 split)
 - Never exceed total time
-- If arm injury → NO planks, NO pushups, NO arm load, NO jumps
+- - If arm injury → STRICT BAN: no planks, no side planks, no bird-dog, no pushups, no arm-supported core, no arm loading, no crawling, no jumping
+- If any banned exercise appears → replace with legs-only core (dead bug legs, reverse crunch, hollow hold, leg raises)
 - Every day MUST show exact time split matching above
 """
 
