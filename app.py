@@ -1,3 +1,4 @@
+```python
 import streamlit as st
 import google.generativeai as genai
 import pandas as pd
@@ -164,8 +165,10 @@ if st.button("Generate Coaching Advice"):
         st.dataframe(generate_nutrition())
 
 # ---------------- RESET BUTTON ----------------
-if st.button("Reset All Inputs"):
+if st.button("Reset"):
+    # Define defaults dict to fix the NameError
+    defaults = {}
     # Only reset keys that you control / set
     for key, value in defaults.items():
         st.session_state[key] = value
-        st.experimental_rerun()  # safely refresh app
+    st.experimental_rerun()  # safely refresh app
