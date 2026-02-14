@@ -163,7 +163,7 @@ def get_ai_text(prompt):
 # ---------------- NUTRITION ----------------
 def generate_workout_table():
 
-    # ----- Exercise Pool -----
+    # ----- Strength pool (5 exercises like AI output) -----
     strength_pool = [
         "Squats",
         "Lunges",
@@ -171,18 +171,23 @@ def generate_workout_table():
         "Calf Raises",
         "Step-ups",
         "Wall Sit",
-        "Romanian Deadlift (Bodyweight)"
+        "Romanian Deadlift (Bodyweight)",
+        "Reverse Crunch",
+        "Dead Bug (legs only)",
+        "Leg Raises",
+        "Hollow Hold"
     ]
 
     cardio_options = [
         "Cycling",
         "Brisk Walk",
         "Treadmill Walk",
-        "Elliptical (legs only)"
+        "Elliptical (legs only)",
+        "Stationary Bike"
     ]
 
-    # Pick EXACTLY 3 strength exercises (matches your AI output rule)
-    strength_exercises = random.sample(strength_pool, 3)
+    # Pick EXACTLY 5 strength exercises (to match AI plan)
+    strength_exercises = random.sample(strength_pool, 5)
     cardio_exercise = random.choice(cardio_options)
 
     # ----- Time Structure -----
@@ -194,8 +199,8 @@ def generate_workout_table():
     cardio_block = usable // 2
     strength_block = usable - cardio_block
 
-    # Even strength distribution (3 exercises only)
-    time_per_strength = round(strength_block / 3, 1)
+    # Even distribution across 5 exercises
+    time_per_strength = round(strength_block / 5, 1)
 
     # ----- Sets by Intensity -----
     if intensity == "Low":
@@ -212,7 +217,7 @@ def generate_workout_table():
         rows.append({
             "Exercise": ex,
             "Sets": sets,
-            "Reps / Time": f"12-15 reps (~{time_per_strength} min)"
+            "Reps / Time": f"10-15 reps (~{time_per_strength} min)"
         })
 
     # ----- Cardio Row -----
@@ -223,6 +228,7 @@ def generate_workout_table():
     })
 
     return pd.DataFrame(rows)
+
 
 
 # ---------------- GENERATE ----------------
