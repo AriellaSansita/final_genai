@@ -168,4 +168,4 @@ if st.button("Reset All Inputs"):
     # Only reset keys that you control / set
     for key, value in defaults.items():
         st.session_state[key] = value
-    st.experimental_rerun()  # safely refresh app
+        st.experimental_rerun()  # safely refresh app
