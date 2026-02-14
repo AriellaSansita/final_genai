@@ -88,20 +88,20 @@ def generate_workout_table():
     strength_ex = [e for e in exercises if e["type"] == "strength"]
     cardio_ex = [e for e in exercises if e["type"] == "cardio"]
 
-    # ---- TIME LOGIC ----
-    warmup_time = 10
-    cooldown_time = 10
-    usable_time = max(10, session_duration - warmup_time - cooldown_time)
+    # -------- SESSION STRUCTURE --------
+    warmup = 10
+    cooldown = 10
+    usable = session_duration - warmup - cooldown
 
-    # Strength block gets ~35% of usable time
-    strength_block = int(usable_time * 0.35)
-    cardio_block = usable_time - strength_block
+    # Hard realistic caps (prevents insane cardio)
+    cardio_block = min(40, int(usable * 0.55))   # never exceeds 40 min
+    strength_block = usable - cardio_block       # rest goes to strength
 
     rows = []
 
-    # ---- STRENGTH DISTRIBUTION ----
+    # -------- STRENGTH --------
     if strength_ex:
-        time_per_strength = max(3, strength_block // len(strength_ex))
+        time_per_strength = max(4, strength_block // len(strength_ex))
 
         if intensity == "Low":
             sets, reps = 1, "12-15"
@@ -117,7 +117,7 @@ def generate_workout_table():
                 "Reps / Time": f"{reps} reps (~{time_per_strength} min)"
             })
 
-    # ---- CARDIO ----
+    # -------- CARDIO --------
     if cardio_ex:
         rows.append({
             "Exercise": cardio_ex[0]["name"],
@@ -154,6 +154,12 @@ Rules:
 - Bullet points
 - Practical, short, structured
 - No motivational talk
+
+Workout Structure:
+- Warmup: 10 min
+- Cardio: 40 min
+- Strength/Core: 30 min
+- Cooldown: 10 min
 
 Sections:
 1. Recovery (only if injury exists)
