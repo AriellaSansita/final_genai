@@ -165,9 +165,8 @@ if st.button("Generate Coaching Advice"):
 
 # ---------------- RESET BUTTON ----------------
 if st.button("Reset"):
-    # Define defaults dict to fix the NameError
-    defaults = {}
-    # Only reset keys that you control / set
-    for key, value in defaults.items():
-        st.session_state[key] = value
-    st.experimental_rerun()  # safely refresh app
+    # Clear session state to reset inputs (widgets will reset on rerun)
+    for key in list(st.session_state.keys()):
+        if key != "reset_trigger":  # Keep reset_trigger if needed, but actually clear all
+            del st.session_state[key]
+    st.rerun()  # Use st.rerun() instead of deprecated st.experimental_rerun()
