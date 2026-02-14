@@ -101,7 +101,7 @@ def generate_workout_table():
 
     # -------- STRENGTH --------
     if strength_ex:
-        time_per_strength = max(4, strength_block // len(strength_ex))
+        time_per_strength = max(strength_block // len(strength_ex))
 
         if intensity == "Low":
             sets, reps = 1, "12-15"
@@ -235,27 +235,29 @@ if st.button("Generate Coaching Advice"):
             inj = injury.lower()
         
             # Injury-aware focus selection
-            if "arm" in inj or "broken" in inj or "fracture" in inj:
-                focus_pool = [
-                    "Stamina",
-                    "Cardio",
-                    "Lower Body",
-                    "Recovery",
-                    "Mobility",
-                    "Cardio",
-                    "Recovery"
-                ]
-            else:
-                focus_pool = [
-                    "Stamina",
-                    "Strength",
-                    "Cardio",
-                    "Mobility",
-                    "Speed",
-                    "Technique",
-                    "Recovery"
-                ]
-        
+        inj = injury.lower()
+
+        if "arm" in inj or "broken" in inj or "fracture" in inj:
+            focus_pool = [
+                "Stamina + Cardio",
+                "Lower Body + Core",
+                "Stamina + Cardio",
+                "Active Recovery",
+                "Mobility + Core",
+                "Cardio",
+                "Recovery"
+            ]
+        else:
+            focus_pool = [
+                "Stamina + Cardio",
+                "Full Body Strength",
+                "Cardio Intervals",
+                "Mobility",
+                "Speed & Agility",
+                "Technique",
+                "Recovery"
+            ]
+
             # Generate schedule
             schedule = [focus_pool[i] if i < training_days else "Rest" for i in range(7)]
         
