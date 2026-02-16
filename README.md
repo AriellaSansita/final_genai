@@ -73,3 +73,34 @@ Live App Link:
 [Paste Streamlit App Link Here]
 
 # Screenshots
+<img width="2770" height="1168" alt="image" src="https://github.com/user-attachments/assets/5918bde3-3428-4312-adc3-073d416bb87c" />
+<img width="2782" height="1264" alt="image" src="https://github.com/user-attachments/assets/0f49517a-dc19-449e-afa6-a04ed96c9bce" />
+
+# Prompt Engineering 
+
+- Generate a full-body workout plan for a goal keeper in football.
+<img width="2720" height="1428" alt="image" src="https://github.com/user-attachments/assets/af6362e2-1d29-4795-8e77-00b89f95c22a" />
+
+- Create a recovery-safe training routine for an athlete with broken arm.
+  <img width="840" height="1316" alt="image" src="https://github.com/user-attachments/assets/91527dca-3f95-4ed8-9959-d66be0dde7b9" />
+
+
+- Provide tactical advice to improve goalkeeping positioning and reflex saves in football.
+  <img width="2728" height="1304" alt="image" src="https://github.com/user-attachments/assets/2297ce1a-9c69-4ed2-8cf0-30391b7f071e" />
+
+
+Suggest a personalized warm-up and cooldown routine for a football goalkeeper.
+
+Generate a 7-day stamina-building training plan for a football player.
+
+Create a flexibility and mobility routine to prevent lower-body injuries.
+
+Provide a personalized nutrition plan for a vegetarian athlete aiming for 2200 calories per day.
+
+Suggest hydration and electrolyte strategies for intense football training sessions.
+
+Generate mental preparation and focus tips for match performance and decision-making under pressure.
+
+Create a low-impact training routine for post-injury recovery after knee strain.
+
+
