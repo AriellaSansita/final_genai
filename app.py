@@ -4,7 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 # ---------------- CONFIG ----------------
-# Configured for Gemini 2.5 Flash as requested
+# Using Gemini 2.5 Flash for high-speed, accurate processing
 genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
 model = genai.GenerativeModel(
     "gemini-2.5-flash", 
@@ -17,7 +17,6 @@ model = genai.GenerativeModel(
 st.set_page_config(page_title="CoachBot AI", layout="wide", page_icon="🏆")
 
 # ---------------- DATA MAPPING ----------------
-# Position-sensitive mapping for personalized outputs
 positions_map = {
     "Football": ["Striker", "Midfielder", "Defender", "Goalkeeper", "Winger"],
     "Cricket": ["Batsman", "Fast Bowler", "Spin Bowler", "Wicket Keeper", "All-Rounder"],
@@ -52,7 +51,7 @@ with tab1:
     with p_col4:
         injury = st.text_input("Injury History", "None")
 
-    # Row 2: Training Configuration (Step 3: Required 10 Prompts)
+    # Row 2: Training Configuration
     st.subheader("2. Training Configuration")
     g_col1, g_col2, g_col3, g_col4 = st.columns(4)
     with g_col1:
@@ -69,22 +68,36 @@ with tab1:
     with g_col4:
         schedule_days = st.number_input("Schedule Days", 1, 30, 7)
 
+    # DYNAMIC ROW: Food & Allergies (Appears only if feature involves food)
+    food_related = ["Nutrition Plan", "Hydration Strategy"]
+    allergy_info = "None"
+    meal_pref = "N/A"
+
+    if feature in food_related:
+        st.info("🍎 Nutrition Details Required")
+        f_col1, f_col2 = st.columns(2)
+        with f_col1:
+            meal_pref = st.selectbox("Meal Preference", ["Non-Veg", "Vegetarian", "Vegan", "Pescetarian"])
+        with f_col2:
+            allergy_info = st.text_input("Food Allergies (e.g., Nuts, Dairy, Gluten)", "None")
+
     st.markdown("---")
 
     # Generate Button
     if st.button("Generate Plan", type="primary"):
-        # Prompt Engineering (Step 3 & 4): Enforcing table output and removing HTML
+        # Prompt Engineering with new dynamic inputs
         prompt = (
             f"Act as a professional youth coach for a {age}yo {sport} {position}. "
             f"Goal: {goal}. Intensity: {intensity}. Injury History: {injury}. "
-            f"Create a {feature} for {schedule_days} days. "
+            f"Task: Create a {feature} for {schedule_days} days. "
+            f"Meal Preference: {meal_pref}. Allergies to avoid: {allergy_info}. "
             "STRICT RULES:\n"
             "1. Output ONLY a Markdown table.\n"
             "2. DO NOT use HTML tags like <br>.\n"
-            "3. Ensure advice is safety-first and customized for the position."
+            "3. Ensure advice is safety-first, position-specific, and allergy-compliant."
         )
         
-        with st.spinner("AI Coach thinking..."):
+        with st.spinner("AI Coach calculating personalized metrics..."):
             try:
                 response = model.generate_content(prompt)
                 out_col, vis_col = st.columns([2, 1])
@@ -93,7 +106,7 @@ with tab1:
                     st.markdown(response.text) 
                 with vis_col:
                     st.subheader("📊 Session Load Analysis")
-                    # Step 6: Data Visualization for technical proficiency
+                    # Step 6: Data Visualization
                     fig, ax = plt.subplots(figsize=(5, 4))
                     ax.pie([15, 70, 15], labels=['Activation', 'Workload', 'Recovery'], 
                            autopct='%1.1f%%', colors=['#FFD700','#1E90FF','#32CD32'], startangle=90)
@@ -108,13 +121,12 @@ with tab2:
     
     c_col1, c_col2 = st.columns([1, 2])
     with c_col1:
-        # Step 5: Hyperparameter Tuning (Temperature Slider)
+        # Step 5: Hyperparameter Tuning
         c_temp = st.slider("Coaching Style (Temperature)", 0.0, 1.0, 0.4)
 
     if st.button("Ask AI Coach", type="primary"):
         if user_query:
             try:
-                # Custom model instance with user-tuned temperature
                 custom_model = genai.GenerativeModel("gemini-2.5-flash", generation_config={"temperature": c_temp})
                 res = custom_model.generate_content(user_query)
                 st.info("AI Coach Perspective:")
@@ -123,4 +135,3 @@ with tab2:
                 st.error(f"Error: {e}")
 
 st.markdown("---")
-st.caption("🏆 CoachBot AI | NextGen Sports Lab | AI Summative Assessment")
