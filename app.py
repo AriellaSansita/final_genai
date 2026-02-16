@@ -89,7 +89,7 @@ with tab2:
     if st.button("Ask AI Coach", type="primary"):
         if user_query:
             # Re-initializing model with custom temperature (Intensity)
-            custom_model = genai.GenerativeModel("gemini-1.5-flash", generation_config={"temperature": ai_temp})
+            custom_model = genai.GenerativeModel("gemini-2.5-flash", generation_config={"temperature": ai_temp})
             custom_prompt = f"Question: {user_query}. Format: Short Markdown table. No HTML. Brief points only."
             
             with st.spinner("Consulting Coach..."):
