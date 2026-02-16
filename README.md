@@ -39,13 +39,7 @@ Research was conducted on sports-specific training, injury prevention, recovery-
 
 # Model Configuration
 
-The Gemini model was configured using different temperature settings depending on output type:
-
-- Temperature = 0.3 for safe and structured workout plans
-
-- Temperature = 0.7 for creative tactical and nutrition advice
-
-Prompt structure and phrasing were refined through testing to improve response accuracy and personalization.
+The Gemini model temperature was configured using a scaled range (1–100). A moderate temperature value was selected to maintain balanced and consistent outputs. This ensured responses remained structured and safe for workout generation while still allowing some flexibility for tactical and nutrition suggestions. Prompt phrasing was refined through testing to improve response quality, clarity, and personalization.
 
 # Sample Outputs and Validation
 
