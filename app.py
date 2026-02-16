@@ -4,13 +4,18 @@ import matplotlib.pyplot as plt
 
 # ---------------- CONFIG ----------------
 genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
-model = genai.GenerativeModel(
-    "gemini-1.5-flash", # Note: Standard stable string for Gemini Flash
-    generation_config={
-        "temperature": 0.3, 
-        "top_p": 0.8
-    }
-)
+
+# Function to get safe response and prevent the "Part" error
+def get_ai_response(target_model, prompt):
+    try:
+        response = target_model.generate_content(prompt)
+        if response.candidates and response.candidates[0].content.parts:
+            raw_text = response.candidates[0].content.parts[0].text
+            # Remove any pesky <br> tags programmatically
+            return raw_text.replace("<br>", " ").replace("</br>", " ")
+        return "The coach is busy. Please try a simpler question."
+    except Exception as e:
+        return f"Connection Error: {str(e)}"
 
 st.set_page_config(page_title="CoachBot AI", layout="wide", page_icon="🏆")
 
@@ -29,113 +34,67 @@ positions_map = {
     "Kabaddi": ["Raider", "Defender", "All-Rounder"]
 }
 
-# ---------------- TOP UI LAYOUT ----------------
-st.title("🏆 CoachBot AI - Smart Fitness Assistant")
-st.write("AI-powered personalized coach for young athletes")
-st.markdown("---")
+# ---------------- UI LAYOUT ----------------
+st.title("🏆 CoachBot AI")
+st.write("Personalized fitness and tactical coaching.")
 
 tab1, tab2 = st.tabs(["📊 Smart Assistant", "🧠 Custom Coach"])
 
 with tab1:
-    st.subheader("1. Athlete Profile")
-    p_col1, p_col2, p_col3, p_col4 = st.columns(4)
-    with p_col1:
-        sport = st.selectbox("Sport", list(positions_map.keys()))
-    with p_col2:
-        position = st.selectbox("Position", positions_map[sport])
-    with p_col3:
-        age = st.number_input("Age", 10, 50, 18)
-    with p_col4:
-        injury = st.text_input("Injury History", "None")
+    st.subheader("1. Profile & Goal")
+    c1, c2, c3, c4 = st.columns(4)
+    with c1: sport = st.selectbox("Sport", list(positions_map.keys()))
+    with c2: position = st.selectbox("Position", positions_map[sport])
+    with c3: age = st.number_input("Age", 10, 50, 18)
+    with c4: injury = st.text_input("Injury History", "None")
 
-    st.subheader("2. Training Configuration")
-    g_col1, g_col2, g_col3, g_col4 = st.columns(4)
-    with g_col1:
-        feature = st.selectbox("Coaching Focus", [
-            "Full Workout Plan", "Weekly Training Plan", "Nutrition Plan", 
-            "Hydration Strategy", "Warm-up & Cooldown", "Tactical Coaching", 
-            "Skill Drills", "Injury Risk Predictor", "Mobility & Stretching", 
-            "Mental Focus Training"
-        ])
-    with g_col2:
-        goal = st.selectbox("Primary Goal", ["Stamina", "Strength", "Speed", "Recovery", "Skill Improvement"])
-    with g_col3:
-        intensity_level = st.select_slider("Intensity Level", options=["Low", "Moderate", "High"])
-    with g_col4:
-        schedule_days = st.number_input("Schedule Days", 1, 30, 7)
+    st.subheader("2. Plan Details")
+    g1, g2, g3, g4 = st.columns(4)
+    with g1: 
+        feature = st.selectbox("Focus", ["Full Workout Plan", "Weekly Training Plan", "Nutrition Plan", "Hydration Strategy", "Warm-up & Cooldown", "Tactical Coaching", "Skill Drills", "Injury Risk Predictor", "Mobility & Stretching", "Mental Focus Training"])
+    with g2: goal = st.selectbox("Goal", ["Stamina", "Strength", "Speed", "Recovery", "Skill"])
+    with g3: intensity_level = st.select_slider("Intensity", options=["Low", "Moderate", "High"])
+    with g4: days = st.number_input("Days", 1, 30, 7)
 
-    # Dynamic Nutrition Fields
-    food_related = ["Nutrition Plan", "Hydration Strategy"]
-    allergy_info, meal_pref = "None", "N/A"
-
-    if feature in food_related:
-        st.info("🍎 Nutrition Details Required")
-        f_col1, f_col2 = st.columns(2)
-        with f_col1:
-            meal_pref = st.selectbox("Meal Preference", ["Non-Veg", "Vegetarian", "Vegan", "Pescetarian"])
-        with f_col2:
-            allergy_info = st.text_input("Food Allergies", "None")
-
-    st.markdown("---")
+    # Food Logic
+    allergy, pref = "None", "N/A"
+    if feature in ["Nutrition Plan", "Hydration Strategy"]:
+        f1, f2 = st.columns(2)
+        with f1: pref = st.selectbox("Diet", ["Non-Veg", "Veg", "Vegan"])
+        with f2: allergy = st.text_input("Allergies", "None")
 
     if st.button("Generate Plan", type="primary"):
-        prompt = (
-            f"Role: Professional Coach. Athlete: {age}yo {sport} {position}. "
-            f"Goal: {goal}. Intensity: {intensity_level}. Injury: {injury}. "
-            f"Meal Pref: {meal_pref}. Allergies: {allergy_info}. "
-            f"Provide a {feature} for {schedule_days} days. "
-            "Format: Markdown table only. No HTML. No intro/outro."
-        )
+        model = genai.GenerativeModel("gemini-1.5-flash")
+        prompt = f"Coach a {age}yo {sport} {position}. Goal: {goal}. Intensity: {intensity_level}. Injury: {injury}. Diet: {pref}. Allergies: {allergy}. Task: {feature} for {days} days. Format: Markdown table. No HTML."
         
-        with st.spinner("AI Coach thinking..."):
-            try:
-                response = model.generate_content(prompt)
-                # Safely extract text to avoid the error
-                if response.candidates:
-                    raw_text = response.candidates[0].content.parts[0].text
-                    # Programmatically remove <br> tags if they appear
-                    clean_text = raw_text.replace("<br>", " ").replace("</br>", " ")
-                    
-                    out_col, vis_col = st.columns([2, 1])
-                    with out_col:
-                        st.success(f"📋 AI Coaching Output: {feature}")
-                        st.markdown(clean_text) 
-                    with vis_col:
-                        st.subheader("📊 Session Load Analysis")
-                        fig, ax = plt.subplots(figsize=(5, 4))
-                        ax.pie([15, 70, 15], labels=['Activation', 'Workload', 'Recovery'], 
-                               autopct='%1.1f%%', colors=['#FFD700','#1E90FF','#32CD32'], startangle=90)
-                        st.pyplot(fig)
-                else:
-                    st.error("AI could not generate a response. Please try a simpler request.")
-            except Exception as e:
-                st.error(f"Operation Error: {e}")
+        with st.spinner("Analyzing..."):
+            result = get_ai_response(model, prompt)
+            res_col, vis_col = st.columns([2, 1])
+            with res_col:
+                st.markdown(result)
+            with vis_col:
+                fig, ax = plt.subplots(figsize=(5,4))
+                ax.pie([20, 60, 20], labels=['Prep', 'Work', 'Recover'], autopct='%1.1f%%', colors=['#FFD700','#1E90FF','#32CD32'])
+                st.pyplot(fig)
 
 with tab2:
     st.subheader("🧠 Custom Coach Consultation")
-    user_query = st.text_area("Ask a specific coaching question:", placeholder="e.g., Suggest 3 drills for explosive speed.")
+    user_query = st.text_area("Ask anything (e.g., '3 drills for speed'):")
     
-    c_col1, c_col2 = st.columns([1, 2])
-    with c_col1:
-        intensity_val = st.slider("Intensity", 1, 100, 40)
+    col_a, col_b = st.columns([1, 2])
+    with col_a:
+        intensity_val = st.slider("Intensity (Creativity)", 1, 100, 40)
         ai_temp = intensity_val / 100.0
 
     if st.button("Ask AI Coach", type="primary"):
         if user_query:
-            custom_prompt = (
-                f"Question: {user_query}. "
-                f"Intensity: {intensity_val}/100. "
-                "Format: Short Markdown table only. No HTML. No chat."
-            )
-            try:
-                custom_model = genai.GenerativeModel("gemini-1.5-flash", generation_config={"temperature": ai_temp})
-                res = custom_model.generate_content(custom_prompt)
-                if res.candidates:
-                    clean_res = res.candidates[0].content.parts[0].text.replace("<br>", " ")
-                    st.info("📋 Quick Coaching Chart:")
-                    st.markdown(clean_res)
-            except Exception as e:
-                st.error(f"Error: {e}")
+            # Re-initializing model with custom temperature (Intensity)
+            custom_model = genai.GenerativeModel("gemini-1.5-flash", generation_config={"temperature": ai_temp})
+            custom_prompt = f"Question: {user_query}. Format: Short Markdown table. No HTML. Brief points only."
+            
+            with st.spinner("Consulting Coach..."):
+                answer = get_ai_response(custom_model, custom_prompt)
+                st.info("📋 Coach's Rapid Response:")
+                st.markdown(answer)
 
-st.markdown("---")
-st.caption("🏆 CoachBot AI | NextGen Sports Lab | AI Summative Assessment")
+st.caption("🏆 CoachBot AI | NextGen Sports Lab")
