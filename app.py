@@ -1,12 +1,11 @@
 import streamlit as st
 import google.generativeai as genai
-import pandas as pd
 import matplotlib.pyplot as plt
 
 # ---------------- CONFIG ----------------
 genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
 model = genai.GenerativeModel(
-    "gemini-2.5-flash", 
+    "gemini-1.5-flash", # Note: Standard stable string for Gemini Flash
     generation_config={
         "temperature": 0.3, 
         "top_p": 0.8
@@ -80,65 +79,63 @@ with tab1:
     st.markdown("---")
 
     if st.button("Generate Plan", type="primary"):
-        # Explicit instructions to remove <br> tags
         prompt = (
-            f"Act as a professional youth coach for a {age}yo {sport} {position}. "
-            f"Goal: {goal}. Intensity: {intensity_level}. Injury History: {injury}. "
-            f"Task: Create a {feature} for {schedule_days} days. "
-            f"Meal Preference: {meal_pref}. Allergies: {allergy_info}. "
-            "STRICT RULES:\n"
-            "1. Output ONLY a Markdown table.\n"
-            "2. DO NOT use HTML tags like <br> or <div>.\n"
-            "3. If you need a line break, use a single space or a comma within the text.\n"
-            "4. Ensure the output is clean Markdown."
+            f"Role: Professional Coach. Athlete: {age}yo {sport} {position}. "
+            f"Goal: {goal}. Intensity: {intensity_level}. Injury: {injury}. "
+            f"Meal Pref: {meal_pref}. Allergies: {allergy_info}. "
+            f"Provide a {feature} for {schedule_days} days. "
+            "Format: Markdown table only. No HTML. No intro/outro."
         )
         
         with st.spinner("AI Coach thinking..."):
             try:
                 response = model.generate_content(prompt)
-                out_col, vis_col = st.columns([2, 1])
-                with out_col:
-                    st.success(f"📋 AI Coaching Output: {feature}")
-                    st.markdown(response.text) 
-                with vis_col:
-                    st.subheader("📊 Session Load Analysis")
-                    fig, ax = plt.subplots(figsize=(5, 4))
-                    ax.pie([15, 70, 15], labels=['Activation', 'Workload', 'Recovery'], 
-                           autopct='%1.1f%%', colors=['#FFD700','#1E90FF','#32CD32'], startangle=90)
-                    st.pyplot(fig)
+                # Safely extract text to avoid the error
+                if response.candidates:
+                    raw_text = response.candidates[0].content.parts[0].text
+                    # Programmatically remove <br> tags if they appear
+                    clean_text = raw_text.replace("<br>", " ").replace("</br>", " ")
+                    
+                    out_col, vis_col = st.columns([2, 1])
+                    with out_col:
+                        st.success(f"📋 AI Coaching Output: {feature}")
+                        st.markdown(clean_text) 
+                    with vis_col:
+                        st.subheader("📊 Session Load Analysis")
+                        fig, ax = plt.subplots(figsize=(5, 4))
+                        ax.pie([15, 70, 15], labels=['Activation', 'Workload', 'Recovery'], 
+                               autopct='%1.1f%%', colors=['#FFD700','#1E90FF','#32CD32'], startangle=90)
+                        st.pyplot(fig)
+                else:
+                    st.error("AI could not generate a response. Please try a simpler request.")
             except Exception as e:
-                st.error(f"Error: {e}")
+                st.error(f"Operation Error: {e}")
 
 with tab2:
     st.subheader("🧠 Custom Coach Consultation")
-    user_query = st.text_area("Ask a specific coaching question:", 
-                             placeholder="e.g., Suggest 3 drills for explosive speed.")
+    user_query = st.text_area("Ask a specific coaching question:", placeholder="e.g., Suggest 3 drills for explosive speed.")
     
     c_col1, c_col2 = st.columns([1, 2])
     with c_col1:
-        # User defined intensity (1-100)
-        intensity_val = st.slider("Advice Intensity", 1, 100, 40)
+        intensity_val = st.slider("Intensity", 1, 100, 40)
         ai_temp = intensity_val / 100.0
 
     if st.button("Ask AI Coach", type="primary"):
         if user_query:
-            # Enforcing short chart/table response
             custom_prompt = (
                 f"Question: {user_query}. "
                 f"Intensity: {intensity_val}/100. "
-                "STRICT RULES:\n"
-                "1. Response MUST be a short Markdown table.\n"
-                "2. NO HTML tags like <br>.\n"
-                "3. Keep descriptions very brief (bullet points).\n"
-                "4. Be technical and concise."
+                "Format: Short Markdown table only. No HTML. No chat."
             )
-            
             try:
-                custom_model = genai.GenerativeModel("gemini-2.5-flash", generation_config={"temperature": ai_temp})
+                custom_model = genai.GenerativeModel("gemini-1.5-flash", generation_config={"temperature": ai_temp})
                 res = custom_model.generate_content(custom_prompt)
-                st.info("📋 Quick Coaching Chart:")
-                st.markdown(res.text)
+                if res.candidates:
+                    clean_res = res.candidates[0].content.parts[0].text.replace("<br>", " ")
+                    st.info("📋 Quick Coaching Chart:")
+                    st.markdown(clean_res)
             except Exception as e:
                 st.error(f"Error: {e}")
 
 st.markdown("---")
+st.caption("🏆 CoachBot AI | NextGen Sports Lab | AI Summative Assessment")
