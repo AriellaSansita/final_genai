@@ -11,48 +11,65 @@
 
 # Summative Assessment
 
-# Coach Bot
+# AI Fitness Coach Web App (CoachBot AI)
 
 # Project Overview
-CoachBot AI is a professional-grade fitness and tactical assistant designed for youth athletes. It bridges the gap between amateur training and professional coaching by providing data-driven insights tailored to specific sports, positions, and injury histories.
 
-# Technical Stack
-Language: 100% Python
+This project is a Generative AI-powered web application built using the Gemini API and Streamlit. The system generates personalized fitness training plans, recovery-safe workouts, tactical advice, and nutrition suggestions based on a user’s sport, position, injury history, and fitness goals. The aim of this project is to make structured and safe coaching accessible to young athletes, especially those without access to professional trainers.
 
-Framework: Streamlit (UI & State Management)
+# Problem Statement
 
-AI Engine: Google Gemini 2.5 Flash (via google-generativeai)
+Many young athletes lack access to professional coaching, personalized training routines, and safe recovery guidance. This often leads to poor performance, incorrect training, and risk of injury. Generative AI can bridge this gap by providing adaptive, personalized, and safe training recommendations based on individual athlete needs.
 
-Data Vis: Matplotlib (Session Load Analysis)
+# Objectives
 
-# Key Features (The "Distinguished" Requirements)
-Multi-Prompt Toolkit: 10 specialized coaching modules including Injury Risk Prediction, Tactical Analysis, and Mental Focus.
+- Develop an AI-powered fitness coaching web application using Generative AI
 
-Dynamic Nutrition Logic: Adaptive input fields that only trigger for nutrition-based queries, including allergy and dietary preference handling.
+- Generate personalized workout and recovery plans
 
-Hyperparameter Tuning: A user-controlled Intensity Slider (1-100) that maps directly to the AI model's Temperature setting to control the creativity and depth of the advice.
+- Provide injury-safe training recommendations
 
-Automated Data Cleaning: Programmatic removal of HTML artifacts (like <br>) to ensure high-quality Markdown table rendering.
+- Offer tactical and nutrition guidance
 
-# Prompt Engineering Strategy
-Explain that you used Role-Based Prompting and Constraint-Based Prompting.
+- Build and deploy the application using Streamlit and Gemini API
 
-Example: "The system enforces a strict 'Markdown-only' output constraint to ensure scannable, professional charts while preventing conversational filler."
+# Research Summary
 
-# Installation & Setup
+Research was conducted on sports-specific training, injury prevention, recovery-safe workouts, and AI-driven personalized coaching systems. Studies on AI in sports training and fitness recommendation systems helped shape the design of this project. The system focuses on generating safe, adaptive, and personalized training outputs for young athletes
 
-Clone the repo:
+# Model Configuration
 
-Bash
-git clone https://github.com/your-username/coachbot-ai.git
-Install dependencies:
+The Gemini model was configured using different temperature settings depending on output type:
 
-Bash
-pip install -r requirements.txt
-Set up API Key:
-Add your GOOGLE_API_KEY to your .streamlit/secrets.toml or environment variables.
+- Temperature = 0.3 for safe and structured workout plans
 
-Run the app:
+- Temperature = 0.7 for creative tactical and nutrition advice
 
-Bash
-streamlit run app.py
+Prompt structure and phrasing were refined through testing to improve response accuracy and personalization.
+
+# Sample Outputs and Validation
+
+The model was tested using different sports, positions, and injury conditions. Outputs were evaluated for safety, personalization, and relevance. Recovery-based prompts produced safe workout modifications, and training plans matched sport-specific requirements. Prompt phrasing and temperature settings were adjusted to improve clarity and accuracy of responses.
+
+# Features of the Web App
+
+-  input for sport, position, injury history, and goals
+
+- AI-generated personalized workout plans
+
+- Injury-safe training recommendations
+
+- Tactical improvement suggestions
+
+- Nutrition and hydration guidance
+
+- Simple and user-friendly interface
+
+# Deployment
+
+The web application was developed using Streamlit and integrated with the Gemini API for AI-generated outputs. The project was uploaded to GitHub and deployed using Streamlit Cloud.
+
+Live App Link:
+[Paste Streamlit App Link Here]
+
+# Screenshots
