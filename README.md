@@ -1,16 +1,22 @@
-#IDI1011000470-Ariella-Sansita-M
-#Candidate Name - Ariella Sansita M
-#Candidate Registration Number - 1000470
-#CRS Name: Artificial Intelligence
-#Course Name - Generative AI
-#School name - Birla Open Minds International School, Kollur
-#Summative Assessment
-#Coach Bot
 
-#Project Overview
+# Candidate Name - Ariella Sansita M
+
+# Candidate Registration Number - 1000470
+
+# CRS Name: Artificial Intelligence
+
+# Course Name - Generative AI
+
+# School name - Birla Open Minds International School, Kollur
+
+# Summative Assessment
+
+# Coach Bot
+
+# Project Overview
 CoachBot AI is a professional-grade fitness and tactical assistant designed for youth athletes. It bridges the gap between amateur training and professional coaching by providing data-driven insights tailored to specific sports, positions, and injury histories.
 
-#Technical Stack
+# Technical Stack
 Language: 100% Python
 
 Framework: Streamlit (UI & State Management)
@@ -19,7 +25,7 @@ AI Engine: Google Gemini 2.5 Flash (via google-generativeai)
 
 Data Vis: Matplotlib (Session Load Analysis)
 
-#Key Features (The "Distinguished" Requirements)
+# Key Features (The "Distinguished" Requirements)
 Multi-Prompt Toolkit: 10 specialized coaching modules including Injury Risk Prediction, Tactical Analysis, and Mental Focus.
 
 Dynamic Nutrition Logic: Adaptive input fields that only trigger for nutrition-based queries, including allergy and dietary preference handling.
@@ -28,12 +34,13 @@ Hyperparameter Tuning: A user-controlled Intensity Slider (1-100) that maps dire
 
 Automated Data Cleaning: Programmatic removal of HTML artifacts (like <br>) to ensure high-quality Markdown table rendering.
 
-#Prompt Engineering Strategy
+# Prompt Engineering Strategy
 Explain that you used Role-Based Prompting and Constraint-Based Prompting.
 
 Example: "The system enforces a strict 'Markdown-only' output constraint to ensure scannable, professional charts while preventing conversational filler."
 
-#Installation & Setup
+# Installation & Setup
+
 Clone the repo:
 
 Bash
