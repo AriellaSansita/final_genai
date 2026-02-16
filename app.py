@@ -107,21 +107,31 @@ with tab1:
 with tab2:
     st.subheader("🧠 Custom Coach Consultation")
     user_query = st.text_area("Ask a specific coaching question:", 
-                             placeholder="e.g., What are some pre-match visualization techniques?")
+                             placeholder="e.g., Suggest 3 drills for explosive speed.")
     
     c_col1, c_col2 = st.columns([1, 2])
     with c_col1:
-        # UPDATED: Renamed to Intensity and changed range to 1-100
+        # Intensity 1-100 Slider
         intensity_val = st.slider("Advice Intensity", 1, 100, 40)
-        # Convert 1-100 back to 0.01-1.0 for the AI model
         ai_temp = intensity_val / 100.0
 
     if st.button("Ask AI Coach", type="primary"):
         if user_query:
+            # Custom Prompt Engineering for Short Chart Response
+            custom_prompt = (
+                f"User Question: {user_query}. "
+                f"Coaching Intensity Level: {intensity_val}/100. "
+                "STRICT RULES:\n"
+                "1. Provide the response ONLY in a short Markdown table/chart.\n"
+                "2. Keep explanations extremely concise (bullet points only).\n"
+                "3. Use professional sports terminology.\n"
+                "4. No conversational filler or HTML tags."
+            )
+            
             try:
                 custom_model = genai.GenerativeModel("gemini-2.5-flash", generation_config={"temperature": ai_temp})
-                res = custom_model.generate_content(user_query)
-                st.info("AI Coach Perspective:")
+                res = custom_model.generate_content(custom_prompt)
+                st.info("📋 Quick Coaching Chart:")
                 st.markdown(res.text)
             except Exception as e:
                 st.error(f"Error: {e}")
