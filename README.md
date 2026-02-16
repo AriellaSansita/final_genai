@@ -70,7 +70,7 @@ The model was tested using different sports, positions, and injury conditions. O
 The web application was developed using Streamlit and integrated with the Gemini API for AI-generated outputs. The project was uploaded to GitHub and deployed using Streamlit Cloud.
 
 Live App Link:
-[Paste Streamlit App Link Here]
+https://finalgenai-fskpykktspqo6hqiupr2ue.streamlit.app/
 
 # Screenshots
 <img width="2770" height="1168" alt="image" src="https://github.com/user-attachments/assets/5918bde3-3428-4312-adc3-073d416bb87c" />
