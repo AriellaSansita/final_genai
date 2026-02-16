@@ -1,168 +1,97 @@
 import streamlit as st
 import google.generativeai as genai
 import pandas as pd
-import random
+import matplotlib.pyplot as plt
 
 # ---------------- CONFIG ----------------
+# Using Gemini 1.5 Pro as per assignment requirements 
 genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
 model = genai.GenerativeModel(
-    "gemini-2.5-flash",
+    "gemini-1.5-pro", 
     generation_config={
-        "temperature": 0.4
+        "temperature": 0.4, # Lower temperature for conservative/safe plans 
+        "top_p": 0.9
     }
 )
 
 st.set_page_config(page_title="CoachBot AI", layout="wide")
 st.title("🏆 CoachBot AI - Smart Fitness Assistant")
-st.write("AI-powered personalized coach for young athletes")
+st.markdown("---")
 
-# ---------------- USER INPUT ----------------
-sports_list = [
-    "Football","Cricket","Basketball","Athletics","Badminton","Tennis",
-    "Hockey","Volleyball","Kabaddi","Table Tennis","Swimming","Martial Arts","Other"
-]
-
-sport = st.selectbox("Sport", sports_list)
-
-positions_by_sport = {
-    "Football": ["Goalkeeper","Defender","Midfielder","Winger","Striker"],
-    "Cricket": ["Batsman","Bowler","All-Rounder","Wicket Keeper"],
-    "Basketball": ["Point Guard","Shooting Guard","Small Forward","Power Forward","Center"],
-    "Athletics": ["Sprinter","Long Distance Runner","Jumper","Thrower"],
-    "Badminton": ["Singles Player","Doubles Player"],
-    "Tennis": ["Singles Player","Doubles Player"],
-    "Hockey": ["Goalkeeper","Defender","Midfielder","Forward"],
-    "Volleyball": ["Setter","Libero","Spiker","Blocker"],
-    "Kabaddi": ["Raider","Defender","All-Rounder"],
-    "Table Tennis": ["Singles Player","Doubles Player"],
-    "Swimming": ["Freestyle Specialist","Backstroke Specialist","Butterfly Specialist"],
-    "Martial Arts": ["Striker","Grappler","Mixed Fighter"]
-}
-
-if sport == "Other":
-    sport = st.text_input("Enter Your Sport") or "General Sport"
-    position = st.text_input("Enter Position") or "Athlete"
-else:
-    position = st.selectbox("Player Position", positions_by_sport.get(sport, ["Athlete"]))
-
-injury = st.text_input("Injury History (None if no injury)")
-goal = st.selectbox("Primary Goal", ["Stamina","Strength","Speed","Recovery","Skill Improvement"])
-diet = st.selectbox("Diet Type", ["Vegetarian","Non-Vegetarian","Vegan"])
-intensity = st.selectbox("Training Intensity", ["Low","Moderate","High"])
-age = st.slider("Age", 10, 50, 18)
-training_days = st.slider("Training Days / Week", 1, 7, 4)
-session_duration = st.slider("Session Duration (minutes)", 30, 180, 90)
+# ---------------- SIDEBAR INPUTS ----------------
+st.sidebar.header("Athlete Profile")
+sport = st.sidebar.selectbox("Sport", ["Football", "Cricket", "Basketball", "Athletics", "Other"])
+position = st.sidebar.text_input("Position", "Striker/Bowler")
+injury = st.sidebar.text_input("Injury History", "None")
+goal = st.sidebar.selectbox("Primary Goal", ["Stamina", "Strength", "Speed", "Recovery"])
+diet = st.sidebar.selectbox("Diet Type", ["Vegetarian", "Non-Vegetarian", "Vegan"])
+intensity = st.sidebar.select_slider("Intensity", options=["Low", "Moderate", "High"])
+age = st.sidebar.slider("Age", 10, 25, 16)
 
 # ---------------- FEATURES ----------------
-features = [
-    "Full Workout Plan","Injury Recovery Plan","Weekly Training Plan",
-    "Stamina Builder","Nutrition Plan","Hydration Strategy",
-    "Warm-up & Cooldown","Tactical Coaching","Mental Focus Training",
-    "Skill Drills","Progress Predictor","Match Strategy",
-    "Pre-Match Routine","Post-Match Recovery","Injury Risk Predictor",
-    "Mobility & Stretching","Tournament Preparation"
-]
+selected_feature = st.selectbox("Choose Coaching Feature", [
+    "Weekly Training Plan", 
+    "Full Workout Details", 
+    "Nutrition & Macros", 
+    "Injury Recovery Steps"
+])
 
-selected_feature = st.selectbox("Choose Coaching Feature", features)
-
-# ---------------- NUTRITION ----------------
-def generate_nutrition():
-
-    carbs = ["Oats","Brown Rice","Quinoa","Sweet Potato","Whole Wheat"]
-    protein_veg = ["Lentils","Chickpeas","Tofu","Tempeh","Beans","Paneer"]
-    protein_nonveg = ["Eggs","Chicken","Fish"]
-    fats = ["Nuts","Seeds","Olive Oil","Peanut Butter"]
-
-    protein = protein_nonveg if diet == "Non-Vegetarian" else protein_veg
-
-    return pd.DataFrame({
-        "Meal": ["Breakfast","Lunch","Dinner","Snacks"],
-        "Plan": [
-            f"{random.choice(carbs)} + {random.choice(protein)}",
-            f"Balanced: {random.choice(carbs)}, {random.choice(protein)}, Vegetables",
-            f"Recovery: {random.choice(protein)} + Vegetables",
-            f"{random.choice(fats)} + Fruit"
-        ]
-    })
+# ---------------- HELPER: PLOTTING ----------------
+def plot_metrics(feature):
+    fig, ax = plt.subplots(figsize=(6, 3))
+    if "Workout" in feature or "Training" in feature:
+        labels = ['Warmup', 'Core Drills', 'Conditioning', 'Cooldown']
+        sizes = [15, 45, 30, 10]
+        colors = ['#ff9999','#66b3ff','#99ff99','#ffcc99']
+        ax.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=90, colors=colors)
+        ax.set_title("Session Time Distribution")
+    else:
+        labels = ['Carbs', 'Protein', 'Fats']
+        sizes = [50, 30, 20]
+        ax.bar(labels, sizes, color=['blue', 'green', 'orange'])
+        ax.set_ylabel('Percentage (%)')
+        ax.set_title("Target Macro Distribution")
+    
+    st.pyplot(fig)
 
 # ---------------- AI PROMPT ----------------
 def build_prompt():
+    return f"""
+    You are a professional youth sports coach. 
+    Provide a {selected_feature} for a {age}-year-old {sport} player ({position}).
+    Goal: {goal}. Injury History: {injury}. Intensity: {intensity}. Diet: {diet}.
 
-    prompt = f"""
-You are a professional youth sports coach AI.
+    MANDATORY FORMATTING:
+    1. Provide the main response ONLY as a Markdown Table.
+    2. Use columns relevant to the request (e.g., Day, Exercise, Sets, Reps OR Meal, Food Item, Portion).
+    3. Keep descriptions concise for a mobile-friendly web app.
+    4. If there is an injury, include a 'Safety Note' column.
+    """
 
-Athlete:
-Sport: {sport}
-Position: {position}
-Age: {age}
-Goal: {goal}
-Injury: {injury}
-Intensity: {intensity}
-Diet: {diet}
-Training Days: {training_days}
-Session Duration: {session_duration}
+# ---------------- EXECUTION ----------------
+if st.button("Generate My Personalized Plan"):
+    with st.spinner("Analyzing data and generating charts..."):
+        try:
+            # Get AI Response
+            response = model.generate_content(build_prompt())
+            output_text = response.text
 
-Include ONLY module: {selected_feature}
+            # Layout: Two Columns for Data and Visualization
+            col1, col2 = st.columns([2, 1])
 
-General Rules:
-- Max 220 words
-- Bullet points
-- Practical and structured
-- No motivation fluff
+            with col1:
+                st.subheader(f"📋 {selected_feature}")
+                st.markdown(output_text) # Renders the Markdown table from AI
 
-Act as a certified youth strength and conditioning coach.
-Prioritize safety and injury prevention in all recommendations.
-"""
+            with col2:
+                st.subheader("📊 Visual Breakdown")
+                plot_metrics(selected_feature)
+                
+                with st.expander("Coach's Notes"):
+                    st.info(f"This plan is optimized for {intensity} intensity and considers your {injury} history.")
 
-    if selected_feature in ["Full Workout Plan","Weekly Training Plan","Stamina Builder"]:
-        prompt += f"""
+        except Exception as e:
+            st.error(f"An error occurred: {e}")
 
-Workout Rules:
-- Total session MUST equal {session_duration} minutes
-- Warmup: 10 min
-- Cooldown: 10 min
-- Remaining time split 50/50 between Cardio and Strength
-- Never exceed total time
-"""
-
-    if selected_feature == "Pre-Match Routine":
-        prompt += """
-
-Pre-Match Rules:
-- Single session only (NOT 6 days)
-- 20–40 minutes total
-- Focus on activation, reaction, sharpness
-- No heavy strength blocks
-"""
-
-    return prompt
-
-# ---------------- AI CALL ----------------
-def get_ai_text(prompt):
-    try:
-        r = model.generate_content(prompt)
-        return r.candidates[0].content.parts[0].text if r and r.candidates else "⚠️ No AI output"
-    except Exception as e:
-        if "quota" in str(e).lower():
-            return "⚠️ API quota exceeded. Try again later."
-        return f"Error: {e}"
-
-# ---------------- GENERATE ----------------
-if st.button("Generate Coaching Advice"):
-
-    with st.spinner("AI Coach thinking..."):
-        output = get_ai_text(build_prompt())
-
-    st.subheader("📋 AI Coaching Output")
-    st.write(output)
-
-    if selected_feature == "Weekly Training Plan":
-        st.subheader("📅 Weekly Schedule")
-        days = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]
-        focus_pool = ["Stamina","Strength","Skill","Mobility","Speed","Recovery","Tactical"]
-        schedule = [focus_pool[i] if i < training_days else "Rest" for i in range(7)]
-        st.table(pd.DataFrame({"Day": days, "Focus": schedule}).set_index("Day"))
-
-    if selected_feature == "Nutrition Plan":
-        st.subheader("🥗 Nutrition Guide")
-        st.dataframe(generate_nutrition())
+st.markdown("---")
+st.caption("CoachBot AI uses Gemini 1.5 Pro to provide sports science-backed advice. Always consult a physical coach before beginning high-intensity training.")
