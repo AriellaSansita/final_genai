@@ -75,6 +75,8 @@ Live App Link:
 # Screenshots
 <img width="2770" height="1168" alt="image" src="https://github.com/user-attachments/assets/5918bde3-3428-4312-adc3-073d416bb87c" />
 <img width="2782" height="1264" alt="image" src="https://github.com/user-attachments/assets/0f49517a-dc19-449e-afa6-a04ed96c9bce" />
+<img width="2806" height="1272" alt="image" src="https://github.com/user-attachments/assets/0b3fdf14-6ead-4cfe-bd3f-de78b3f118f6" />
+
 
 # Prompt Engineering 
 
@@ -84,23 +86,28 @@ Live App Link:
 - Create a recovery-safe training routine for an athlete with broken arm.
   <img width="840" height="1316" alt="image" src="https://github.com/user-attachments/assets/91527dca-3f95-4ed8-9959-d66be0dde7b9" />
 
-
 - Provide tactical advice to improve goalkeeping positioning and reflex saves in football.
   <img width="2728" height="1304" alt="image" src="https://github.com/user-attachments/assets/2297ce1a-9c69-4ed2-8cf0-30391b7f071e" />
 
+- Suggest a personalized warm-up and cooldown routine for a football goalkeeper.
+<img width="2636" height="1492" alt="image" src="https://github.com/user-attachments/assets/c2dd427c-5566-4451-a411-9593b131b2c6" />
 
-Suggest a personalized warm-up and cooldown routine for a football goalkeeper.
+- Generate a 7-day stamina-building training plan for a football player.
+<img width="2626" height="1548" alt="image" src="https://github.com/user-attachments/assets/3a93570c-57f2-4c39-9688-648aa01f3558" />
 
-Generate a 7-day stamina-building training plan for a football player.
+- Create a flexibility and mobility routine to prevent lower-body injuries.
+<img width="2872" height="1496" alt="image" src="https://github.com/user-attachments/assets/cbc61eb7-2017-43b5-b8f7-6e3f37f40697" />
 
-Create a flexibility and mobility routine to prevent lower-body injuries.
+- Provide a personalized nutrition plan for a vegetarian athlete aiming for 2200 calories per day.
+<img width="2912" height="1438" alt="image" src="https://github.com/user-attachments/assets/25d19d5a-5372-49d5-a0bf-dfa9728c938f" />
 
-Provide a personalized nutrition plan for a vegetarian athlete aiming for 2200 calories per day.
+- Suggest hydration and electrolyte strategies for intense football training sessions.
+<img width="2848" height="1456" alt="image" src="https://github.com/user-attachments/assets/758a7b00-7321-4b24-9a67-1ffc8fc5b865" />
 
-Suggest hydration and electrolyte strategies for intense football training sessions.
+- Generate mental preparation and focus tips for match performance and decision-making under pressure.
+<img width="2746" height="1470" alt="image" src="https://github.com/user-attachments/assets/6eefd69d-8d9f-42b8-b18a-e7eb32efd7df" />
 
-Generate mental preparation and focus tips for match performance and decision-making under pressure.
-
-Create a low-impact training routine for post-injury recovery after knee strain.
+- Create a low-impact training routine for post-injury recovery after knee strain.
+<img width="2610" height="1478" alt="image" src="https://github.com/user-attachments/assets/2c2b2875-a91c-460e-9737-46406cb236f7" />
 
 
